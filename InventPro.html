@@ -1,0 +1,1580 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InventPro – Inventari Concorsuali</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f8f8f7;--surface:#fff;--border:#e5e5e2;--border2:#d0d0cc;
+  --text:#1a1a16;--muted:#6b6b64;--muted2:#a0a09a;
+  --brand:#1d4ed8;--brand-light:#eff4ff;--brand-dark:#1a44c0;
+  --ok:#15803d;--ok-bg:#f0fdf4;--warn:#92400e;--warn-bg:#fffbeb;
+  --danger:#b91c1c;--danger-bg:#fef2f2;
+  --radius:8px;--radius-lg:12px;
+}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;height:100vh;overflow:hidden}
+
+/* ── TOAST ─────────────────────────────────────────────── */
+#toast{position:fixed;top:16px;right:16px;z-index:9999;max-width:340px;padding:11px 16px;border-radius:var(--radius-lg);font-size:13px;font-weight:500;line-height:1.5;box-shadow:0 8px 24px rgba(0,0,0,.15);display:none;animation:toastIn .2s ease}
+@keyframes toastIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+#toast.ok{background:#14532d;color:#bbf7d0}
+#toast.err{background:#7f1d1d;color:#fecaca}
+#toast.warn{background:#78350f;color:#fef3c7}
+#toast.info{background:#1e3a5f;color:#bfdbfe}
+
+/* ── CONFIRM MODAL ─────────────────────────────────────── */
+#confirm-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:9990;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+#confirm-modal.open{display:flex}
+.confirm-box{background:var(--surface);border-radius:var(--radius-lg);padding:28px;width:380px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+#confirm-msg{font-size:14px;line-height:1.6;color:var(--text);margin-bottom:20px;white-space:pre-wrap}
+.confirm-btns{display:flex;gap:8px;justify-content:flex-end}
+
+/* ── APP LAYOUT ────────────────────────────────────────── */
+.app{display:flex;height:100vh}
+.sidebar{width:232px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── SIDEBAR ───────────────────────────────────────────── */
+.sb-logo{padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sb-logo-icon{width:32px;height:32px;background:var(--text);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;flex-shrink:0}
+.sb-logo-name{font-size:15px;font-weight:600;letter-spacing:-.3px}
+.sb-logo-sub{font-size:11px;color:var(--muted)}
+.sb-nav{padding:8px;flex:1;overflow-y:auto}
+.nav-sect{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);padding:12px 8px 4px}
+.ni{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--muted);transition:all .12s;white-space:nowrap}
+.ni:hover{background:var(--bg);color:var(--text)}
+.ni.on{background:var(--brand-light);color:var(--brand);font-weight:500}
+.ni-icon{width:16px;text-align:center;flex-shrink:0}
+.sb-footer{padding:12px;border-top:1px solid var(--border);display:flex;align-items:center;gap:9px}
+.user-av{width:32px;height:32px;border-radius:50%;background:var(--text);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;font-family:'DM Mono',monospace;flex-shrink:0}
+.user-name{font-size:12px;font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.user-role{font-size:11px;color:var(--muted)}
+
+/* ── TOPBAR ────────────────────────────────────────────── */
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 14px;height:52px;display:flex;align-items:center;gap:0;flex-shrink:0}
+.topbar-wordmark{display:none}@media(min-width:540px){.topbar-wordmark{display:block}}
+.user-av{width:32px;height:32px;border-radius:50%;background:var(--text);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;font-family:DM Mono,monospace;flex-shrink:0}
+.tb-left{min-width:0}
+.tb-title{font-size:15px;font-weight:600;letter-spacing:-.2px}
+.tb-sub{font-size:12px;color:var(--muted)}
+.tb-actions{display:flex;gap:6px;flex-shrink:0}
+
+/* ── CONTENT ───────────────────────────────────────────── */
+.content{flex:1;overflow-y:auto;padding:20px}
+
+/* ── BUTTONS ───────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:0 13px;height:33px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--surface);font-size:13px;font-weight:500;cursor:pointer;color:var(--text);font-family:'DM Sans',sans-serif;transition:all .12s;white-space:nowrap;text-decoration:none}
+.btn:hover{background:var(--bg)}
+.btn:active{transform:scale(.98)}
+.btn-sm{height:28px;padding:0 10px;font-size:12px}
+.btn-primary{background:var(--brand);color:#fff;border-color:var(--brand)}.btn-primary:hover{background:var(--brand-dark)}
+.btn-danger{background:var(--danger-bg);color:var(--danger);border-color:#fecaca}.btn-danger:hover{background:#fee2e2}
+.btn-warn{background:var(--warn-bg);color:var(--warn);border-color:#fde68a}
+.btn-ok{background:var(--ok-bg);color:var(--ok);border-color:#bbf7d0}
+
+/* ── CARDS ─────────────────────────────────────────────── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;margin-bottom:14px}
+.card-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:14px}
+
+/* ── STATS ─────────────────────────────────────────────── */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px}
+.stat-lbl{font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px}
+.stat-val{font-size:22px;font-weight:600;font-family:'DM Mono',monospace;letter-spacing:-.5px}
+
+/* ── DASH TABS ─────────────────────────────────────────── */
+.dash-tabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:14px}
+.dash-tab{padding:10px 22px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;display:flex;align-items:center;gap:8px}
+.dash-tab:hover{color:var(--text)}
+.dash-tab.on{color:var(--brand);border-bottom-color:var(--brand);font-weight:600}
+.dash-tab .tbadge{font-size:11px;font-weight:700;padding:1px 7px;border-radius:20px;background:var(--border);color:var(--muted)}
+.dash-tab.on .tbadge{background:var(--brand);color:#fff}
+.dash-tab.warn-tab.on{color:var(--warn);border-bottom-color:#f59e0b}
+.dash-tab.warn-tab.on .tbadge{background:#f59e0b;color:#fff}
+
+/* ── TABLES ────────────────────────────────────────────── */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 12px;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:11px 12px;border-bottom:1px solid var(--bg);color:var(--text);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg)}
+
+/* ── BADGES ────────────────────────────────────────────── */
+.badge{display:inline-flex;align-items:center;font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px}
+.b-green{background:#dcfce7;color:#15803d}
+.b-blue{background:#dbeafe;color:#1d4ed8}
+.b-gray{background:#f1f1ef;color:var(--muted)}
+.b-amber{background:#fef3c7;color:#92400e}
+
+/* ── FORM ──────────────────────────────────────────────── */
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.fg.g1{grid-template-columns:1fr}
+.fg.g3{grid-template-columns:1fr 1fr 1fr}
+.full{grid-column:1/-1}
+.inp-row{display:flex;flex-direction:column;gap:5px}
+.inp-row label{font-size:12px;font-weight:500;color:var(--muted)}
+.inp-row input,.inp-row select,.inp-row textarea{font-size:13px;border:1px solid var(--border2);border-radius:var(--radius);padding:8px 10px;background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;transition:border .12s;width:100%}
+.inp-row input:focus,.inp-row select:focus,.inp-row textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(29,78,216,.08)}
+.inp-row textarea{resize:vertical;min-height:72px;line-height:1.5}
+::placeholder{color:var(--muted2);font-style:italic;opacity:1}
+
+/* ── ART TABS ──────────────────────────────────────────── */
+.art-tabs{display:flex;border-bottom:2px solid var(--border);background:var(--surface);overflow-x:auto}
+.at{padding:11px 18px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .15s;display:flex;align-items:center;gap:6px}
+.at:hover{color:var(--text)}
+.at.on{color:var(--brand);border-bottom-color:var(--brand);font-weight:600}
+#art-tab-content{background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius-lg) var(--radius-lg);padding:20px}
+
+/* ── PHOTO GRID ────────────────────────────────────────── */
+.photo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.photo-slot{aspect-ratio:4/3;border:1.5px dashed var(--border2);border-radius:var(--radius);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;background:var(--bg);transition:all .15s}
+.photo-slot:hover{border-color:var(--brand);background:var(--brand-light)}
+.photo-slot img{width:100%;height:100%;object-fit:cover}
+.photo-slot .del-btn{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;display:none;align-items:center;justify-content:center}
+.photo-slot:hover .del-btn{display:flex}
+.add-icon{width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;margin-bottom:4px;font-size:16px;color:var(--muted)}
+.photo-slot:hover .add-icon{background:var(--brand-light);color:var(--brand)}
+.add-txt{font-size:11px;color:var(--muted)}
+
+/* ── AI BOX ────────────────────────────────────────────── */
+.ai-box{background:var(--brand-light);border:1px solid #bdd3f5;border-radius:var(--radius-lg);padding:14px;margin-bottom:14px}
+.ai-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.ai-title{font-size:13px;font-weight:600;color:var(--brand)}
+.btn-ai{background:linear-gradient(135deg,#1a5fa8,#7c3aed);color:#fff;border:none;font-size:13px;padding:9px 18px;border-radius:var(--radius);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;width:100%;text-align:center;transition:all .2s;margin-top:8px}
+.btn-ai:hover{background:linear-gradient(135deg,#155b9e,#6b2fd4);color:#fff!important}
+.btn-ai:disabled{opacity:.4;cursor:not-allowed}
+#ai-analysis-result{margin-top:8px;font-size:13px}
+
+/* ── SEDI ──────────────────────────────────────────────── */
+.sede-card{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;background:var(--bg)}
+.sede-highlight{background:var(--brand-light);border-color:#bdd3f5}
+.sede-tipo{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;flex-shrink:0;margin-top:2px}
+.sede-legale{background:#dbeafe;color:#1d4ed8}
+.sede-operativa{background:#dcfce7;color:#15803d}
+.sede-info{flex:1;min-width:0}
+.sede-nome{font-size:13px;font-weight:500}
+.sede-addr{font-size:11px;color:var(--muted);margin-top:2px}
+.sede-form{display:none;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-top:10px}
+
+/* ── ART ROW ───────────────────────────────────────────── */
+.art-row{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:8px;cursor:pointer;transition:all .15s;background:var(--surface)}
+.art-row:hover{border-color:var(--border2);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.art-thumb{width:52px;height:52px;border-radius:var(--radius);overflow:hidden;flex-shrink:0;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:22px}
+.art-thumb img{width:100%;height:100%;object-fit:cover}
+.art-body{flex:1;min-width:0}
+.art-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.art-meta{font-size:11px;color:var(--muted);margin-top:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.stag{display:inline-block;font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;background:var(--warn-bg);color:var(--warn);border:1px solid #fde68a;font-family:'DM Mono',monospace}
+.art-price{text-align:right;flex-shrink:0;min-width:90px}
+.art-pv{font-size:13px;font-weight:600;font-family:'DM Mono',monospace;color:#8b1a1a}
+.art-ps{font-size:10px;color:var(--muted);margin-top:2px;font-family:'DM Mono',monospace}
+
+/* ── TOTALS BAR ────────────────────────────────────────── */
+.totbar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:14px;display:flex;gap:0}
+.tot-item{flex:1;padding:0 16px;border-right:1px solid var(--border)}
+.tot-item:first-child{padding-left:0}
+.tot-item:last-child{border-right:none}
+.tot-lbl{font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+.tot-val{font-size:18px;font-weight:600;font-family:'DM Mono',monospace}
+
+/* ── LOGIN ─────────────────────────────────────────────── */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.login-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:36px;width:400px;box-shadow:0 8px 30px rgba(0,0,0,.08)}
+.login-tabs{display:flex;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:3px;margin-bottom:20px}
+.lt{flex:1;padding:7px;text-align:center;font-size:13px;font-weight:500;border-radius:6px;cursor:pointer;color:var(--muted);transition:all .12s}
+.lt.on{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.07)}
+.err-msg{background:var(--danger-bg);border:1px solid #fecaca;color:var(--danger);border-radius:var(--radius);padding:9px 12px;font-size:12px;margin-bottom:12px;display:none}
+
+/* ── PROC MODAL ────────────────────────────────────────── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.28);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--surface);border-radius:var(--radius-lg);padding:26px;width:580px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+.modal-title{font-size:17px;font-weight:600;letter-spacing:-.3px;margin-bottom:18px}
+
+/* ── SUGGEST ───────────────────────────────────────────── */
+.comune-suggest:hover{background:var(--bg)}
+
+/* ── PROGRESS ──────────────────────────────────────────── */
+.progress-bar{background:var(--border);border-radius:4px;height:5px;overflow:hidden;margin:8px 0}
+.progress-fill{height:100%;background:var(--brand);border-radius:4px;transition:width .15s}
+
+/* ── SCROLLBAR ─────────────────────────────────────────── */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* ── CLOSED PROC BANNER ────────────────────────────────── */
+.closed-banner{background:var(--warn-bg);border:1px solid #fde68a;border-radius:var(--radius);padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px}
+
+@media(max-width:640px){
+  body{font-size:13px}
+  .app{flex-direction:column}
+  .sidebar{display:none}
+  .content{padding:10px;overflow-y:auto;-webkit-overflow-scrolling:touch;height:calc(100vh - 48px)}
+  .topbar{padding:0 8px;height:48px}
+  .tb-sub{display:none}
+  .stats{grid-template-columns:1fr 1fr;gap:8px}
+  .stat{padding:10px 8px}
+  .stat-val{font-size:18px}
+  .card{margin-bottom:10px}
+  .fg{grid-template-columns:1fr}
+  .inp-row{grid-column:1/-1}
+  .modal-box{width:96vw!important;margin:10px auto;max-height:88vh;overflow-y:auto}
+  .modal-overlay{align-items:flex-start;padding-top:6px}
+  .art-tabs{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .at{padding:8px 10px;font-size:12px;white-space:nowrap;flex-shrink:0}
+  .photo-grid{grid-template-columns:repeat(2,1fr)}
+  .photo-slot{height:120px}
+  .art-row{padding:8px 6px}
+  .art-thumb{width:44px;height:44px;flex-shrink:0}
+  .totbar{flex-wrap:wrap}
+  .tot-item{flex:1;min-width:40%}
+  .dash-tab{font-size:12px;padding:8px 10px}
+  .btn{font-size:12px;padding:0 10px}
+  .btn-sm{font-size:11px;padding:0 8px;height:28px}
+  #user-name{max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .topbar-wordmark{font-size:13px}
+}
+@media(max-width:400px){
+  .stats{grid-template-columns:1fr}
+  .topbar{padding:0 6px}
+  .content{padding:8px}
+  #user-name{display:none}
+}
+
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+<div id="print-overlay" style="display:none"></div>
+
+<div id="confirm-modal" class="modal-overlay" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="confirm-box">
+    <div id="confirm-msg"></div>
+    <div class="confirm-btns">
+      <button class="btn" id="confirm-no">Annulla</button>
+      <button class="btn btn-danger" id="confirm-yes">Conferma</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── LOGIN SCREEN ─────────────────────────────────────── -->
+<div id="login-screen" class="login-wrap">
+  <div class="login-card">
+    <div style="text-align:center;margin-bottom:26px">
+      <div style="font-size:26px;font-weight:700;letter-spacing:-.5px">InventPro</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">Gestione Inventari</div>
+    </div>
+    <div class="login-tabs">
+      <div class="lt on" onclick="switchLoginTab('login')">Accedi</div>
+      <div class="lt" onclick="switchLoginTab('reg')">Registrati</div>
+    </div>
+    <div id="err-msg" class="err-msg"></div>
+    <!-- LOGIN FORM -->
+    <div id="lf">
+      <div class="inp-row" style="margin-bottom:12px"><label>Email</label><input id="l-email" type="email" placeholder="email@esempio.it"></div>
+      <div class="inp-row" style="margin-bottom:14px"><label>Password</label><input id="l-pass" type="password"></div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;height:40px;font-size:14px" onclick="doLogin()">Accedi</button>
+      <button class="btn" id="bio-btn" style="width:100%;justify-content:center;height:36px;margin-top:8px" onclick="doBiometric()">Face ID</button>
+      <p style="text-align:center;margin-top:12px;font-size:11px;color:var(--muted)">Demo: admin@inventpro.it / admin123</p>
+      <p style="text-align:center;margin-top:6px"><button onclick="resetApp()" style="background:none;border:none;font-size:11px;color:var(--muted);cursor:pointer;text-decoration:underline">&#x21BA; Problemi? Reimposta app</button></p>
+    </div>
+    <!-- REGISTER FORM -->
+    <div id="rf" style="display:none">
+      <div class="fg" style="margin-bottom:10px">
+        <div class="inp-row"><label>Nome <span style="color:var(--danger)">*</span></label><input id="r-nome" placeholder="ES: Mario"></div>
+        <div class="inp-row"><label>Cognome <span style="color:var(--danger)">*</span></label><input id="r-cog" placeholder="ES: Rossi"></div>
+      </div>
+      <div class="inp-row" style="margin-bottom:10px"><label>Email <span style="color:var(--danger)">*</span></label><input id="r-email" type="email" placeholder="ES: mario@studio.it"></div>
+      <div class="inp-row" style="margin-bottom:10px"><label>Tribunale <span style="color:var(--danger)">*</span></label><input id="r-trib" placeholder="ES: Tribunale di Lecco"></div>
+      <div class="inp-row" style="margin-bottom:10px"><label>Ruolo</label><select id="r-ruolo"><option>Curatore fallimentare</option><option>Liquidatore</option><option>Commissario</option><option>Delegato</option><option>Perito</option></select></div>
+      <div class="inp-row" style="margin-bottom:10px"><label>Indirizzo</label><input id="r-ind" placeholder="ES: Via Roma 1"></div>
+      <div class="inp-row" style="margin-bottom:10px"><label>Città</label><input id="r-citta" placeholder="ES: Milano"></div>
+      <div class="inp-row" style="margin-bottom:10px"><label>Telefono</label><input id="r-tel" placeholder="ES: +39 333 1234567"></div>
+      <div class="inp-row" style="margin-bottom:14px"><label>Password <span style="color:var(--danger)">*</span></label><input id="r-pass" type="password" placeholder="••••••••"></div>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:10px"><span style="color:var(--danger)">*</span> campi obbligatori</p>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;height:40px;font-size:14px" onclick="doRegister()">Registrati</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── APP SCREEN ────────────────────────────────────────── -->
+<div id="app-screen" class="app" style="display:none">
+  <!-- SIDEBAR -->
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:9px;cursor:pointer;flex-shrink:0;padding-right:14px;border-right:1px solid var(--border);margin-right:8px" onclick="go('dash')">
+        <div style="width:30px;height:30px;background:var(--text);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px">&#128203;</div>
+        <div class="topbar-wordmark"><div style="font-size:13px;font-weight:700;letter-spacing:-.3px;line-height:1.2">InventPro</div><div style="font-size:10px;color:var(--muted)">Gestione Inventari</div></div>
+      </div>
+      <button id="topbar-back" onclick="goBack()" style="display:none;align-items:center;gap:5px;background:none;border:1px solid var(--border);border-radius:var(--radius);padding:0 10px;height:30px;cursor:pointer;color:var(--muted);font-size:13px;flex-shrink:0;margin-right:8px;font-family:DM Sans,sans-serif">&#8592;</button>
+      <div class="tb-left" style="flex:1;min-width:0">
+        <div class="tb-title" id="tb-title"></div>
+        <div class="tb-sub" id="tb-sub"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+        <div id="tb-actions" style="display:flex;gap:6px;align-items:center"></div>
+        <button class="btn btn-sm" onclick="go('scanner')" title="Scanner QR" style="padding:0 9px;font-size:15px">&#9641;</button>
+        <button class="btn btn-sm" id="topbar-settings" style="display:none;padding:0 9px;font-size:15px" onclick="go('settings')" title="Impostazioni">&#9881;</button>
+        <div style="display:flex;align-items:center;gap:5px;background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:2px 8px 2px 3px;margin-left:2px">
+          <div class="user-av" id="user-av" style="width:22px;height:22px;font-size:9px">?</div>
+          <span id="user-name" style="font-size:11px;font-weight:500;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">&#8212;</span>
+          <button onclick="logout()" title="Esci" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:12px;padding:0 0 0 2px;line-height:1">&#x2192;</button>
+        </div>
+      </div>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<!-- PROC MODAL -->
+<div id="proc-modal" class="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <div class="modal-title" id="proc-modal-title">Nuova procedura</div>
+    <div class="fg">
+      <div class="inp-row full"><label>Nome / Ragione sociale</label><input id="pm-nome" placeholder="ES: Alfa Srl"></div>
+      <div class="inp-row"><label>Tipo</label><select id="pm-tipo"><option>Fallimento</option><option>Liquidazione giudiziale</option><option>Concordato preventivo</option><option>Commissariamento</option><option>Liquidazione controllata</option></select></div>
+      <div class="inp-row"><label>N. procedura</label><input id="pm-num" placeholder="ES: 2/2025"></div>
+      <div class="inp-row full"><label>Tribunale</label><input id="pm-trib" placeholder="ES: Tribunale di Lecco"></div>
+      <div class="inp-row"><label>Giudice delegato</label><input id="pm-giudice" placeholder="ES: Dott. Rossi"></div>
+      <div class="inp-row"><label>Curatore</label><input id="pm-curatore" placeholder="ES: Avv. Verdi"></div>
+      <div class="inp-row"><label>Commissionario</label><input id="pm-comm" placeholder="ES: Commissario Srl"></div>
+      <div class="inp-row"><label>Data apertura</label><input id="pm-data" type="date"></div>
+    </div>
+    <!-- SEDI -->
+    <div style="border-top:1px solid var(--border);margin:14px 0;padding-top:14px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px">Sedi &#128205;</div>
+      <div id="sedi-list-modal"></div>
+      <button class="btn btn-sm btn-ok" onclick="addSedeModal()">+ Aggiungi sede</button>
+    </div>
+    <div id="sede-form" class="sede-form">
+      <div class="fg">
+        <div class="inp-row full"><label>Nome sede</label><input id="sf-nome" placeholder="ES: Sede legale"></div>
+        <div class="inp-row"><label>Tipo</label><select id="sf-tipo"><option value="legale">Sede legale</option><option value="operativa">Sede operativa</option></select></div>
+        <div class="inp-row"><label>Nazione</label><input id="sf-naz" value="IT"></div>
+        <div class="inp-row full" style="position:relative">
+          <label>Comune</label>
+          <input id="sf-comune" placeholder="ES: Milano" autocomplete="off" oninput="lookupComune(this.value,'sf-cap','sf-prov','sf-comune-list')" onblur="hideComuneSuggest('sf-comune-list')">
+          <div id="sf-comune-list" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--border2);border-radius:0 0 var(--radius) var(--radius);z-index:50;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1)"></div>
+        </div>
+        <div class="inp-row"><label>CAP <span style="font-size:10px;color:var(--muted);font-style:italic">auto</span></label><input id="sf-cap" placeholder="ES: 20100" maxlength="5" oninput="if(this.value.length===5)lookupCAP(this.value,'sf-comune','sf-prov')"></div>
+        <div class="inp-row"><label>Provincia <span style="font-size:10px;color:var(--muted);font-style:italic">auto</span></label><input id="sf-prov" placeholder="ES: MI" maxlength="2" oninput="this.value=this.value.toUpperCase()"></div>
+      </div>
+      <div style="margin-top:10px;padding:10px;background:var(--warn-bg);border:1px solid #fde68a;border-radius:var(--radius);display:flex;align-items:flex-start;gap:10px">
+        <input type="checkbox" id="sf-hasbeni" style="width:17px;height:17px;margin-top:1px;cursor:pointer;accent-color:var(--brand);flex-shrink:0">
+        <div>
+          <label for="sf-hasbeni" style="font-size:13px;font-weight:500;cursor:pointer">&#128230; Beni presenti in questa sede</label>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">Questa sede apparirà nel menu Sede bene degli articoli</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;padding:10px;background:var(--brand-light);border:1px solid #bdd3f5;border-radius:var(--radius)">
+        <div style="font-size:12px;font-weight:600;color:var(--brand);margin-bottom:6px">&#11088; Sede predefinita per gli articoli</div>
+        <div id="sede-default-radio"></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn btn-sm btn-primary" id="sede-save-btn" onclick="saveSedeModal()">Salva sede</button>
+        <button class="btn btn-sm" onclick="document.getElementById('sede-form').style.display='none'">Annulla</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid var(--border)">
+      <button class="btn" onclick="closeModal()">Annulla</button>
+      <button class="btn btn-primary" id="proc-save-btn" onclick="saveProcedura()">Salva procedura</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden inputs -->
+<input type="file" id="photo-input" accept="image/*" multiple style="display:none">
+<input type="file" id="ai-scan-input" accept="image/*" style="display:none">
+<input type="file" id="logo-input" accept="image/*" style="display:none">
+<input type="file" id="qr-img-input" accept="image/*" style="display:none">
+
+<script>
+// ── CONSTANTS ───────────────────────────────────────────────────────────────
+const UK='ip_users', PK='ip_procs', AK='ip_arts', CK='ip_cur', SK='ip_settings';
+const DATA_VER='v5';
+const SIECIC_TIPOLOGIE=['BENE MOBILE','BENE MOBILE REGISTRATO','BENE IMMOBILE','CREDITO','PARTECIPAZIONE','BENE IMMATERIALE','AZIENDA/RAMO D\'AZIENDA','ALTRO'];
+const SIECIC_CODICI={
+  'BENE MOBILE':{'Arredi ufficio':'702.010','Arredi negozio':'702.020','Macchinari industriali':'702.030','Attrezzature':'702.040','Informatica e elettronica':'702.050','Utensili e attrezzi':'702.060','Merci e scorte':'702.070','Materie prime':'702.080','Prodotti finiti':'702.090','Altro':'702.999'},
+  'BENE MOBILE REGISTRATO':{'Autovettura':'703.010','Autocarro':'703.020','Motoveicolo':'703.030','Natante':'703.040','Aeromobile':'703.050','Macchina operatrice':'703.060','Altro':'703.999'},
+  'BENE IMMOBILE':{'Capannone':'701.010','Ufficio':'701.020','Negozio':'701.030','Abitazione':'701.040','Terreno':'701.050','Altro':'701.999'},
+  'CREDITO':{'Credito commerciale':'705.010','Credito finanziario':'705.020','Deposito bancario':'705.030','Altro':'705.999'},
+  'PARTECIPAZIONE':{'Quota s.r.l.':'706.010','Azioni s.p.a.':'706.020','Altra partecipazione':'706.999'},
+  'BENE IMMATERIALE':{'Brevetto':'707.010','Marchio':'707.020','Software':'707.030','Licenza':'707.040','Avviamento':'707.050','Altro':'707.999'},
+  'AZIENDA/RAMO D\'AZIENDA':{'Azienda':'708.010','Ramo d\'azienda':'708.020'},
+  'ALTRO':{'Altro':'709.999'}
+};
+const SIECIC_SOTTOCATEGORIE={
+  'BENE MOBILE':['Arredi ufficio','Arredi negozio','Macchinari industriali','Attrezzature','Informatica e elettronica','Utensili e attrezzi','Merci e scorte','Materie prime','Prodotti finiti','Altro'],
+  'BENE MOBILE REGISTRATO':['Autovettura','Autocarro','Motoveicolo','Natante','Aeromobile','Macchina operatrice','Altro'],
+  'BENE IMMOBILE':['Capannone','Ufficio','Negozio','Abitazione','Terreno','Altro'],
+  'CREDITO':['Credito commerciale','Credito finanziario','Deposito bancario','Altro'],
+  'PARTECIPAZIONE':['Quota s.r.l.','Azioni s.p.a.','Altra partecipazione'],
+  'BENE IMMATERIALE':['Brevetto','Marchio','Software','Licenza','Avviamento','Altro'],
+  'AZIENDA/RAMO D\'AZIENDA':['Azienda','Ramo d\'azienda'],
+  'ALTRO':['Altro']
+};
+const FALLCO_TITOLI=['Proprietà','Leasing','Comodato','Usufrutto','Nuda proprietà','Locazione finanziaria','Bene terzo','Oggetto rivendica'];
+const SIECIC_MISURE=['NR','KG','Q','T','MT','MQ','MC','L','SET','LOTTO'];
+
+let currentUser=null, currentProc=null, editingArt=null;
+let artTab=1, artPhotos=[], aiScanImageB64=null, tempSedi=[];
+let _dashTab='attive', _editSedeIdx=-1;
+let _navHistory=[];
+
+// ── STORAGE ──────────────────────────────────────────────────────────────────
+function ls(k){try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null}}
+function lss(k,v){localStorage.setItem(k,JSON.stringify(v))}
+function g(id){return document.getElementById(id)}
+function vv(id){var e=g(id);return e?e.value.trim():''}
+function fmtEur(n){return '€'+parseFloat(n||0).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function getSettings(){return ls(SK)||{ragSoc:'InventPro Srl',indirizzo:'',comune:'',cap:'',provincia:'',piva:'',logo:''}}
+
+// ── SEED ─────────────────────────────────────────────────────────────────────
+(function(){
+  if(ls('ip_dver')!==DATA_VER){
+    lss(CK,null);
+    var users=ls(UK)||[];
+    users=users.filter(function(u){return u.email&&u.pass;});
+    if(!users.find(function(u){return u.email==='admin@inventpro.it';})){
+      users.unshift({id:'u0',nome:'Admin',cognome:'InventPro',email:'admin@inventpro.it',pass:'admin123',ruolo:'Amministratore',tribunale:'Tutti',tel:'',isAdmin:true,registeredAt:new Date().toISOString()});
+    }else{
+      users=users.map(function(u){return u.email==='admin@inventpro.it'?Object.assign({},u,{isAdmin:true}):u;});
+    }
+    lss(UK,users);
+    lss('ip_dver',DATA_VER);
+  }
+  var users=ls(UK)||[];
+  if(!users.find(function(u){return u.email==='admin@inventpro.it';})){
+    users.unshift({id:'u0',nome:'Admin',cognome:'InventPro',email:'admin@inventpro.it',pass:'admin123',ruolo:'Amministratore',tribunale:'Tutti',tel:'',isAdmin:true,registeredAt:new Date().toISOString()});
+    lss(UK,users);
+  }
+  if(!ls(PK))lss(PK,[{id:'p1',nome:'DNR Sicurezza Srl',tipo:'Liquidazione giudiziale',num:'2/2025',tribunale:'Lecco',giudice:'ES: Dott. Rossi',curatore:'ES: Avv. Verdi',commissionario:'',data:'2025-01-01',status:'attiva',owner:'u0',sedi:[{id:'s1',nome:'Sede legale',tipo:'legale',nazione:'IT',indirizzo:'Via Roma 1',comune:'Lecco',cap:'23900',provincia:'LC',hasBeni:true,isDefault:true}]}]);
+  if(!ls(AK))lss(AK,[]);
+})();
+
+// ── NOTIFY ───────────────────────────────────────────────────────────────────
+function notify(msg,type,dur){
+  var t=g('toast');if(!t)return;
+  t.textContent=msg;t.className=type||'info';t.style.display='block';
+  clearTimeout(t._t);
+  t._t=setTimeout(function(){t.style.display='none';},dur||3500);
+}
+
+// ── CONFIRM MODAL ─────────────────────────────────────────────────────────────
+function customConfirm(msg,onYes){
+  var modal=g('confirm-modal'),msgEl=g('confirm-msg'),yesBtn=g('confirm-yes'),noBtn=g('confirm-no');
+  msgEl.textContent=msg;
+  modal.classList.add('open');
+  var clean=function(){modal.classList.remove('open');yesBtn.onclick=null;noBtn.onclick=null;};
+  yesBtn.onclick=function(){clean();onYes();};
+  noBtn.onclick=clean;
+}
+
+// ── LOGIN ─────────────────────────────────────────────────────────────────────
+function switchLoginTab(t){
+  g('lf').style.display=t==='login'?'block':'none';
+  g('rf').style.display=t==='reg'?'block':'none';
+  document.querySelectorAll('.lt').forEach(function(el,i){el.classList.toggle('on',(t==='login'&&i===0)||(t==='reg'&&i===1));});
+}
+function showErr(msg){g('err-msg').textContent=msg;g('err-msg').style.display='block';}
+function hideErr(){g('err-msg').style.display='none';}
+function resetApp(){
+  customConfirm('Questo cancellerà tutti i dati locali e ricaricherà la pagina.\nContinuare?',function(){
+    ['ip_users','ip_procs','ip_arts','ip_cur','ip_settings','ip_dver'].forEach(function(k){localStorage.removeItem(k);});
+    location.reload();
+  });
+}
+function doLogin(){
+  hideErr();
+  var email=vv('l-email'), pass=g('l-pass').value;
+  var u=(ls(UK)||[]).find(function(x){return x.email===email&&x.pass===pass;});
+  if(!u)return showErr('Email o password non corretti');
+  lss(CK,u.id);startApp(u);
+}
+function doRegister(){
+  hideErr();
+  var nome=vv('r-nome'),cog=vv('r-cog'),email=vv('r-email'),trib=vv('r-trib'),pass=g('r-pass').value;
+  var tel=vv('r-tel'),ruolo=vv('r-ruolo'),ind=vv('r-ind'),citta=vv('r-citta');
+  if(!nome)return showErr('Il campo Nome è obbligatorio');
+  if(!cog)return showErr('Il campo Cognome è obbligatorio');
+  if(!email)return showErr('Il campo Email è obbligatorio');
+  if(!trib)return showErr('Il campo Tribunale è obbligatorio');
+  if(!pass)return showErr('Inserisci una password');
+  var users=ls(UK)||[];
+  if(users.find(function(u){return u.email===email;}))return showErr('Email già registrata');
+  var nu={id:'u'+Date.now(),nome:nome,cognome:cog,email:email,pass:pass,ruolo:ruolo,tribunale:trib,tel:tel,indirizzo:ind,citta:citta,isAdmin:false,registeredAt:new Date().toISOString()};
+  users.push(nu);lss(UK,users);lss(CK,nu.id);startApp(nu);
+}
+function doBiometric(){
+  if(!window.PublicKeyCredential||!window.isSecureContext){notify('Face ID disponibile solo su HTTPS o localhost','warn');return;}
+  var challenge=new Uint8Array(32);crypto.getRandomValues(challenge);
+  navigator.credentials.get({publicKey:{challenge:challenge,timeout:60000,userVerification:'preferred',rpId:window.location.hostname||'localhost'}})
+    .then(function(cred){
+      var credId=btoa(String.fromCharCode.apply(null,new Uint8Array(cred.rawId)));
+      var users=ls(UK)||[];
+      var u=users.find(function(x){return x.credentialId===credId;});
+      if(u){lss(CK,u.id);startApp(u);}
+      else{
+        var email=prompt('Prima configurazione biometria.\nInserisci la tua email:');
+        if(!email)return;
+        var found=users.find(function(x){return x.email===email;});
+        if(!found)return showErr('Email non trovata.');
+        found.credentialId=credId;lss(UK,users);lss(CK,found.id);startApp(found);
+      }
+    })
+    .catch(function(e){
+      if(e.name==='NotAllowedError')notify('Accesso annullato','warn');
+      else notify('Errore biometria: '+e.message,'err');
+    });
+}
+function startApp(u){
+  currentUser=u;
+  g('login-screen').style.display='none';
+  g('app-screen').style.display='flex';
+  g('user-av').textContent=((u.nome[0]||'')+(u.cognome||'')[0]||'?').toUpperCase();
+  g('user-name').textContent=u.nome||'User';
+
+  var _ts=document.getElementById('topbar-settings');if(_ts)_ts.style.display='flex';
+  if(u.isAdmin){var _na=document.getElementById('ni-admin');if(_na)_na.style.display='flex';}
+  var procs=ls(PK)||[];
+  if(procs.length)currentProc=procs[0];
+  _navHistory=[];
+  go('dash');
+}
+function logout(){lss(CK,null);currentUser=null;location.reload();}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+function setTB(title,sub,actEl){
+  g('tb-title').textContent=title;
+  g('tb-sub').textContent=sub||'';
+  var el=g('tb-actions');el.innerHTML='';
+  if(typeof actEl==='string')el.innerHTML=actEl;
+  else if(actEl&&actEl.nodeType)el.appendChild(actEl);
+}
+function go(screen){
+  document.querySelectorAll('.ni').forEach(function(n){n.classList.remove('on');});
+  var map={dash:'ni-dash',procedure:'ni-dash',articolo:'ni-dash',articoli:'ni-dash',scanner:'ni-dash',report:'ni-dash',admin:'ni-admin',settings:'ni-dash'};
+  if(map[screen]){var el=g(map[screen]);if(el)el.classList.add('on');}
+  var fn={dash:renderDash,procedure:renderDash,articolo:renderArticolo,articoli:renderArticoli,scanner:renderScanner,report:renderReport,admin:renderAdmin,settings:renderSettings}[screen];
+  if(fn)fn();
+}
+function getSediProc(p){return (p&&p.sedi)||[];}
+function getSedeLegale(p){var s=getSediProc(p);return s.find(function(x){return x.tipo==='legale';})||s[0]||null;}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+function renderDash(){
+  setTB('','','<button class="btn btn-primary btn-sm" onclick="openProcModal()">+ Procedura</button>');
+  var allProcs=ls(PK)||[];
+  var procs=currentUser.isAdmin?allProcs:allProcs.filter(function(p){return !p.owner||p.owner===currentUser.id;});
+  var attive=procs.filter(function(p){return p.status==='attiva';});
+  var nonAttive=procs.filter(function(p){return p.status!=='attiva';});
+  var arts=ls(AK)||[];
+  var tab=_dashTab||'attive';
+
+  function procRow(p,showApri){
+    var cnt=arts.filter(function(a){return a.procId===p.id;}).length;
+    var badge=p.status==='attiva'?'b-green':'b-gray';
+    var btn=showApri
+      ?'<button class="btn btn-sm" onclick="selectProc(&quot;'+p.id+'&quot;)">Apri &#x2192;</button>'
+      :'<button class="btn btn-sm btn-ok" onclick="toggleProcStatus(&quot;'+p.id+'&quot;)">&#x25B6; Riattiva</button>';
+    return '<tr>'
+      +'<td><strong>'+p.nome+'</strong><br><span style="font-size:11px;color:var(--muted)">'+(p.num||'')+'</span></td>'
+      +'<td><span class="badge b-blue">'+p.tipo+'</span></td>'
+      +'<td>'+(p.tribunale||'-')+'</td>'
+      +'<td style="font-size:12px">'+(p.giudice||'-')+'<br>'+(p.curatore||'-')+'</td>'
+      +'<td style="font-family:\'DM Mono\',monospace;font-size:13px">'+cnt+'</td>'
+      +'<td><span class="badge '+badge+'">'+p.status+'</span></td>'
+      +'<td>'+btn+'</td>'
+      +'</tr>';
+  }
+  function tableHtml(list,showApri){
+    if(!list.length)return '<div style="text-align:center;padding:40px;color:var(--muted);">'+(showApri?'Nessuna procedura attiva. <button class="btn btn-sm btn-primary" style="margin-left:8px;margin-top:8px" onclick="openProcModal()">+ Crea la prima</button>':'Nessuna procedura non attiva.')+'</div></div>';
+    return '<div style="overflow-x:auto"><table><thead><tr><th>Denominazione</th><th>Tipo</th><th>Tribunale</th><th>Giudice/Curatore</th><th>Art.</th><th>Stato</th><th></th></tr></thead><tbody>'+list.map(function(p){return procRow(p,showApri);}).join('')+'</tbody></table></div>';
+  }
+
+  var el=g('content');
+  el.innerHTML=
+    '<div class="stats">'
+      +'<div class="stat"><div class="stat-lbl">Procedure attive</div><div class="stat-val">'+attive.length+'</div></div>'
+      +'<div class="stat"><div class="stat-lbl">Procedure non attive</div><div class="stat-val" style="color:var(--muted)">'+nonAttive.length+'</div></div>'
+    +'</div>'
+    +'<div class="dash-tabs">'
+      +'<div class="dash-tab'+(tab==='attive'?' on':'')+'" id="dtab-attive" onclick="switchDashTab(\'attive\')">'
+        +'&#x2705; Procedure attive <span class="tbadge">'+attive.length+'</span></div>'
+      +'<div class="dash-tab warn-tab'+(tab==='chiuse'?' on':'')+'" id="dtab-chiuse" onclick="switchDashTab(\'chiuse\')">'
+        +'&#x1F4CC; Non attive <span class="tbadge">'+nonAttive.length+'</span></div>'
+    +'</div>'
+    +'<div id="dash-tab-content">'+(tab==='attive'?tableHtml(attive,true):tableHtml(nonAttive,false))+'</div>';
+}
+
+function switchDashTab(tab){
+  _dashTab=tab;
+  ['attive','chiuse'].forEach(function(t){
+    var el=g('dtab-'+t);if(el)el.classList.toggle('on',t===tab);
+  });
+  var allProcs=ls(PK)||[];
+  var procs=currentUser.isAdmin?allProcs:allProcs.filter(function(p){return !p.owner||p.owner===currentUser.id;});
+  var list=tab==='attive'?procs.filter(function(p){return p.status==='attiva';}):procs.filter(function(p){return p.status!=='attiva';});
+  var arts=ls(AK)||[];
+  var showApri=tab==='attive';
+  function procRow(p){
+    var cnt=arts.filter(function(a){return a.procId===p.id;}).length;
+    var badge=p.status==='attiva'?'b-green':'b-gray';
+    var btn=showApri
+      ?'<button class="btn btn-sm" onclick="selectProc(&quot;'+p.id+'&quot;)">Apri &#x2192;</button>'
+      :'<button class="btn btn-sm btn-ok" onclick="toggleProcStatus(&quot;'+p.id+'&quot;)">&#x25B6; Riattiva</button>';
+    return '<tr>'
+      +'<td><strong>'+p.nome+'</strong><br><span style="font-size:11px;color:var(--muted)">'+(p.num||'')+'</span></td>'
+      +'<td><span class="badge b-blue">'+p.tipo+'</span></td>'
+      +'<td>'+(p.tribunale||'-')+'</td>'
+      +'<td style="font-size:12px">'+(p.giudice||'-')+'<br>'+(p.curatore||'-')+'</td>'
+      +'<td style="font-family:\'DM Mono\',monospace;font-size:13px">'+cnt+'</td>'
+      +'<td><span class="badge '+badge+'">'+p.status+'</span></td>'
+      +'<td>'+btn+'</td>'
+      +'</tr>';
+  }
+  var tc=g('dash-tab-content');if(!tc)return;
+  if(!list.length){tc.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)">'+(showApri?'Nessuna procedura attiva.':'Nessuna procedura non attiva.')+'</div>';return;}
+  tc.innerHTML='<div style="overflow-x:auto"><table><thead><tr><th>Denominazione</th><th>Tipo</th><th>Tribunale</th><th>Giudice/Curatore</th><th>Art.</th><th>Stato</th><th></th></tr></thead><tbody>'+list.map(procRow).join('')+'</tbody></table></div>';
+}
+
+function selectProc(id){
+  currentProc=(ls(PK)||[]).find(function(p){return p.id===id;});
+  if(currentProc)renderProcDetail();
+}
+
+function toggleProcStatus(pid){
+  var procs=ls(PK)||[];
+  var i=procs.findIndex(function(x){return x.id===pid;});
+  if(i<0)return;
+  var p=procs[i], isAttiva=p.status==='attiva';
+  customConfirm((isAttiva?'Disattivare "':'Riattivare "')+p.nome+'"?'+(isAttiva?'\nLa procedura sarà spostata nelle Non attive.':''),function(){
+    procs[i].status=isAttiva?'chiusa':'attiva';
+    lss(PK,procs);
+    if(currentProc&&currentProc.id===pid)currentProc=procs[i];
+    notify(isAttiva?'Procedura disattivata':'Procedura riattivata','ok',2500);
+    if(currentProc&&currentProc.id===pid)renderProcDetail();
+    else renderDash();
+  });
+}
+
+// ── PROC DETAIL ───────────────────────────────────────────────────────────────
+function renderProcDetail(){
+  if(!currentProc)return go('dash');
+  var p=currentProc;
+  var arts=(ls(AK)||[]).filter(function(a){return a.procId===p.id&&(currentUser.isAdmin||!a.owner||a.owner===currentUser.id);});
+  var totVM=arts.reduce(function(s,a){return s+(parseFloat(a.valMercato||0)*parseFloat(a.qta||1));},0);
+  var totVG=arts.reduce(function(s,a){return s+(parseFloat(a.valGiud||0)*parseFloat(a.qta||1));},0);
+  var isAttiva=p.status==='attiva';
+
+  var wrap=document.createElement('div');
+  wrap.style.display='flex';wrap.style.gap='4px';
+  if(isAttiva){var b1=document.createElement('button');b1.className='btn btn-sm btn-primary';b1.textContent='+ Nuovo articolo';b1.onclick=function(){go('articolo');};wrap.appendChild(b1);}
+  var b2=document.createElement('button');b2.className='btn btn-sm';b2.textContent='✎ Modifica';b2.onclick=editProc;wrap.appendChild(b2);
+  var b3=document.createElement('button');b3.className=isAttiva?'btn btn-sm btn-warn':'btn btn-sm btn-ok';
+  b3.textContent=isAttiva?'⏸ Disattiva':'▶ Riattiva';
+  b3.onclick=function(){toggleProcStatus(p.id);};wrap.appendChild(b3);
+  var b4=document.createElement('button');b4.className='btn btn-sm btn-danger';b4.textContent='✕ Elimina';
+  b4.onclick=function(){deleteProc(p.id);};wrap.appendChild(b4);
+  setTB('Procedura',p.nome,wrap);
+
+  var sedi=getSediProc(p);
+  var el=g('content');
+  el.innerHTML='';
+
+  // Stats
+  // Export toolbar
+  var exportBar=document.createElement('div');
+  exportBar.style.cssText='display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px';
+  [{icon:'&#128247;',label:'PDF Fotografico',sub:'Foto + descrizioni',bg:'#1d4ed8',hover:'#1a44c0',fn:function(){genReport(false);}},
+   {icon:'&#128200;',label:'PDF Estimativo',sub:'Valori + stime',bg:'#7f1d1d',hover:'#6b1818',fn:function(){genReport(true);}},
+   {icon:'&#128203;',label:'Fallco XLSX',sub:'Formato SIECIC',bg:'#15803d',hover:'#126832',fn:function(){genExcelFallco();}}
+  ].forEach(function(d){var b=document.createElement('button');
+    b.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:10px 8px;border-radius:10px;border:none;background:'+d.bg+';color:#fff;cursor:pointer;font-family:DM Sans,sans-serif;width:100%';
+    b.innerHTML='<span style="font-size:18px">'+d.icon+'</span><span style="font-size:12px;font-weight:600;line-height:1.2">'+d.label+'</span><span style="font-size:10px;opacity:.8">'+d.sub+'</span>';
+    b.onmouseover=function(){this.style.background=d.hover;this.style.transform='translateY(-1px)';};
+    b.onmouseout=function(){this.style.background=d.bg;this.style.transform='';};
+    b.onclick=d.fn;exportBar.appendChild(b);});
+  el.appendChild(exportBar);
+
+  var statsDiv=document.createElement('div');
+  statsDiv.className='stats';
+  statsDiv.innerHTML='<div class="stat"><div class="stat-lbl">Articoli</div><div class="stat-val">'+arts.length+'</div></div>'
+    +'<div class="stat"><div class="stat-lbl">Valore di mercato</div><div class="stat-val" style="font-size:16px;color:var(--brand)">'+fmtEur(totVM)+'</div></div>'
+    +'<div class="stat"><div class="stat-lbl">Valore giudiziale</div><div class="stat-val" style="font-size:16px;color:#8b1a1a">'+fmtEur(totVG)+'</div><div style="font-size:10px;color:var(--muted);margin-top:2px">25% del valore di mercato</div></div>'
+    +'<div class="stat"><div class="stat-lbl">Foto</div><div class="stat-val">'+arts.reduce(function(s,a){return s+(a.photos||[]).length;},0)+'</div></div>';
+  el.appendChild(statsDiv);
+
+  // Closed banner
+  if(!isAttiva){
+    var banner=document.createElement('div');
+    banner.className='closed-banner';
+    banner.innerHTML='<span style="font-size:20px">⚠️</span><div><div style="font-weight:600;color:var(--warn)">Procedura non attiva</div><div style="font-size:12px;color:#78350f">Non è possibile aggiungere nuovi articoli.</div></div>';
+    el.appendChild(banner);
+  }
+
+  // Dati procedura card
+  var c1=document.createElement('div');c1.className='card';
+  c1.innerHTML='<div class="card-title" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none" onclick="var b=this.nextSibling;var a=this.querySelector(\'span.toggle-arrow\');var open=b.style.display!==\'none\';b.style.display=open?\'none\':\'\';a.style.transform=open?\'rotate(-90deg)\':\'\';void 0">Dati procedura <span class="toggle-arrow" style="font-size:12px;transition:transform .2s;display:inline-block;transform:rotate(-90deg)">&#9660;</span></div>'
+    +'<div class="c1-body" style="display:none"><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">'
+    +['Tipo|'+p.tipo,'N. Procedura|'+(p.num||'—'),'Tribunale|'+(p.tribunale||'—'),'Giudice Delegato|'+(p.giudice||'—'),'Curatore|'+(p.curatore||'—'),'Commissionario|'+(p.commissionario||'—')].map(function(s){var sp=s.split('|');return'<div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">'+sp[0]+'</div><div>'+sp[1]+'</div></div>';}).join('')
+    +'<div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Data apertura</div><div>'+(p.data?new Date(p.data).toLocaleDateString('it-IT'):'—')+'</div></div>'
+    +'<div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Stato</div><span class="badge '+(isAttiva?'b-green':'b-gray')+'">'+p.status+'</span></div>'
+    +'</div>';
+  el.appendChild(c1);
+
+  // Sedi card
+  var c2=document.createElement('div');c2.className='card';
+  var sediHtml='<div class="card-title" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none" onclick="var b=this.nextSibling;var a=this.querySelector(\'span.toggle-arrow\');var open=b.style.display!==\'none\';b.style.display=open?\'none\':\'\';a.style.transform=open?\'rotate(-90deg)\':\'\';void 0">Sedi ('+sedi.length+') <span class="toggle-arrow" style="font-size:12px;transition:transform .2s;display:inline-block;transform:rotate(-90deg)">&#9660;</span></div><div class="c2-body" style="display:none">';
+  sedi.forEach(function(s){
+    sediHtml+='<div class="sede-card'+(s.tipo==='legale'?' sede-highlight':'')+'">'
+      +'<span class="sede-tipo '+(s.tipo==='legale'?'sede-legale':'sede-operativa')+'">'+(s.tipo==='legale'?'Legale':'Operativa')+'</span>'
+      +(s.hasBeni?'<span class="badge b-amber" style="margin-left:4px">📦 Beni</span>':'')
+      +(s.isDefault?'<span class="badge b-blue" style="margin-left:4px">⭐ Default</span>':'')
+      +'<div class="sede-info"><div class="sede-nome">'+s.nome+'</div>'
+      +'<div class="sede-addr">'+(s.indirizzo||'')+', '+(s.comune||'')+' '+(s.cap||'')+' ('+(s.provincia||'')+')</div></div></div>';
+  });
+  sediHtml+='</div>';
+  c2.innerHTML=sediHtml;
+  el.appendChild(c2);
+
+  // Inventario card
+  var c3=document.createElement('div');c3.className='card';
+  var invHdr=document.createElement('div');invHdr.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:12px';
+  invHdr.innerHTML='<div class="card-title" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;margin-bottom:0" onclick="var p=this.closest(\'div.card\');var b=p.querySelector(\'.inv-body\');var a=this.querySelector(\'span.toggle-arrow\');var open=b.style.display!==\'none\';b.style.display=open?\'none\':\'\';a.style.transform=open?\'rotate(-90deg)\':\'\';void 0">Inventario ('+arts.length+') <span class="toggle-arrow" style="font-size:12px;transition:transform .2s;display:inline-block;transform:rotate(-90deg)">&#9660;</span></div>';
+  if(isAttiva){var ba=document.createElement('button');ba.className='btn btn-sm btn-primary';ba.textContent='+ Articolo';ba.onclick=function(){go('articolo');};invHdr.appendChild(ba);}
+  c3.appendChild(invHdr);
+  var invBody=document.createElement('div');invBody.className='inv-body';invBody.style.display='none';
+  if(arts.length){arts.forEach(function(a){invBody.innerHTML+=artRowHtml(a);});}
+  else{invBody.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted)">Nessun articolo ancora.</div>';}
+  c3.appendChild(invBody);
+  el.appendChild(c3);
+}
+
+// ── PROC CRUD ─────────────────────────────────────────────────────────────────
+function deleteProc(id){
+  var p=(ls(PK)||[]).find(function(x){return x.id===id;});if(!p)return;
+  var arts=(ls(AK)||[]).filter(function(a){return a.procId===id;});
+  customConfirm('Eliminare "'+p.nome+'"?'+(arts.length?'\n\nAttenzione: verranno eliminati anche '+arts.length+' articoli.':'')+'\n\nOperazione IRREVERSIBILE.',function(){
+    lss(PK,(ls(PK)||[]).filter(function(x){return x.id!==id;}));
+    lss(AK,(ls(AK)||[]).filter(function(a){return a.procId!==id;}));
+    if(currentProc&&currentProc.id===id)currentProc=null;
+    notify('Procedura eliminata','ok',2500);
+    go('dash');
+  });
+}
+
+function openProcModal(existingProc){
+  tempSedi=existingProc?(existingProc.sedi||[]).map(function(s){return Object.assign({},s);}):[];
+  _editSedeIdx=-1;
+  g('proc-modal-title').textContent=existingProc?'Modifica procedura':'Nuova procedura';
+  g('proc-save-btn').textContent=existingProc?'Aggiorna':'Salva procedura';
+  g('proc-save-btn').dataset.editId=existingProc?existingProc.id:'';
+  g('pm-nome').value=existingProc?existingProc.nome:'';
+  g('pm-tipo').value=existingProc?existingProc.tipo:'Liquidazione giudiziale';
+  g('pm-num').value=existingProc?existingProc.num:'';
+  g('pm-trib').value=existingProc?existingProc.tribunale:'';
+  g('pm-giudice').value=existingProc?existingProc.giudice:'';
+  g('pm-curatore').value=existingProc?existingProc.curatore:'';
+  g('pm-comm').value=existingProc?existingProc.commissionario:'';
+  g('pm-data').value=existingProc?existingProc.data:'';
+  g('sede-form').style.display='none';
+  renderSediModal();
+  g('proc-modal').classList.add('open');
+}
+function closeModal(){g('proc-modal').classList.remove('open');}
+function editProc(){if(currentProc)openProcModal(currentProc);}
+
+function renderSediModal(){
+  var html='';
+  tempSedi.forEach(function(s,i){
+    html+='<div class="sede-card" style="margin-bottom:6px">'
+      +'<span class="sede-tipo '+(s.tipo==='legale'?'sede-legale':'sede-operativa')+'">'+(s.tipo==='legale'?'Legale':'Operativa')+'</span>'
+      +(s.hasBeni?'<span class="badge b-amber" style="margin-left:4px;font-size:10px">📦</span>':'')
+      +(s.isDefault?'<span class="badge b-blue" style="margin-left:4px;font-size:10px">⭐</span>':'')
+      +'<div class="sede-info"><div class="sede-nome">'+s.nome+'</div><div class="sede-addr">'+(s.comune||'')+' ('+(s.provincia||'')+')</div></div>'
+      +'<div style="display:flex;gap:4px;flex-shrink:0">'
+      +'<button class="btn btn-sm" onclick="editSedeModal('+i+')">✎</button>'
+      +'<button class="btn btn-sm btn-danger" onclick="removeSedeModal('+i+')">✕</button>'
+      +'</div></div>';
+  });
+  g('sedi-list-modal').innerHTML=html;
+  // Default radio
+  var radHtml='<div style="font-size:12px;color:var(--muted);margin-bottom:6px">Sede predefinita per i nuovi articoli:</div>';
+  if(!tempSedi.length){radHtml+='<div style="font-size:12px;color:var(--muted)">Nessuna sede ancora</div>';}
+  else{tempSedi.forEach(function(s,i){radHtml+='<label style="display:flex;align-items:center;gap:8px;margin-bottom:4px;cursor:pointer;font-size:13px"><input type="radio" name="sede-default" value="'+i+'"'+(s.isDefault?' checked':'')+' onchange="setSedeDefault('+i+')"> '+s.nome+'</label>';});}
+  g('sede-default-radio').innerHTML=radHtml;
+}
+function addSedeModal(){
+  _editSedeIdx=-1;
+  g('sf-nome').value='';g('sf-tipo').value='legale';g('sf-naz').value='IT';
+  g('sf-comune').value='';g('sf-cap').value='';g('sf-prov').value='';
+  g('sf-hasbeni').checked=false;
+  g('sede-save-btn').textContent='Aggiungi sede';
+  g('sede-form').style.display='block';g('sf-nome').focus();
+}
+function editSedeModal(idx){
+  _editSedeIdx=idx;
+  var s=tempSedi[idx];
+  g('sf-nome').value=s.nome||'';g('sf-tipo').value=s.tipo||'legale';g('sf-naz').value=s.nazione||'IT';
+  g('sf-comune').value=s.comune||'';g('sf-cap').value=s.cap||'';g('sf-prov').value=s.provincia||'';
+  g('sf-hasbeni').checked=!!s.hasBeni;
+  g('sede-save-btn').textContent='Aggiorna sede';
+  g('sede-form').style.display='block';g('sf-nome').focus();
+}
+function saveSedeModal(){
+  var nome=vv('sf-nome');if(!nome)return notify('Inserisci il nome della sede','warn');
+  var sede={id:(_editSedeIdx>=0?tempSedi[_editSedeIdx].id:null)||'s'+Date.now(),nome:nome,tipo:g('sf-tipo').value,nazione:vv('sf-naz'),indirizzo:'',comune:vv('sf-comune'),cap:vv('sf-cap'),provincia:vv('sf-prov').toUpperCase(),hasBeni:g('sf-hasbeni').checked,isDefault:false};
+  if(_editSedeIdx>=0){var wasDefault=tempSedi[_editSedeIdx].isDefault;tempSedi[_editSedeIdx]=Object.assign({},sede,{isDefault:wasDefault});}
+  else{if(!tempSedi.length)sede.isDefault=true;tempSedi.push(sede);}
+  g('sede-form').style.display='none';
+  renderSediModal();
+}
+function removeSedeModal(idx){tempSedi.splice(idx,1);if(tempSedi.length&&!tempSedi.find(function(s){return s.isDefault;}))tempSedi[0].isDefault=true;renderSediModal();}
+function setSedeDefault(idx){tempSedi.forEach(function(s,i){s.isDefault=(i===idx);});renderSediModal();}
+
+function saveProcedura(){
+  var nome=vv('pm-nome');if(!nome)return notify('Inserisci il nome della procedura','warn');
+  var procs=ls(PK)||[];
+  var editId=g('proc-save-btn').dataset.editId;
+  var proc={id:editId||'p'+Date.now(),nome:nome,tipo:vv('pm-tipo'),num:vv('pm-num'),tribunale:vv('pm-trib'),giudice:vv('pm-giudice'),curatore:vv('pm-curatore'),commissionario:vv('pm-comm'),data:vv('pm-data'),status:'attiva',owner:currentUser.id,sedi:tempSedi};
+  if(editId){var i=procs.findIndex(function(p){return p.id===editId;});if(i>=0){proc.status=procs[i].status;procs[i]=proc;}}
+  else procs.push(proc);
+  lss(PK,procs);currentProc=proc;
+  closeModal();
+  notify(editId?'Procedura aggiornata':'Procedura creata','ok',2500);
+  renderProcDetail();
+}
+
+// ── ARTICLE ROW HTML ──────────────────────────────────────────────────────────
+function artRowHtml(a){
+  var vt=parseFloat(a.valMercato||0)*parseFloat(a.qta||1);
+  var vg=parseFloat(a.valGiud||0)*parseFloat(a.qta||1);
+  var thumb=a.photos&&a.photos[0]?'<img src="'+a.photos[0]+'" style="width:100%;height:100%;object-fit:cover">':'📦';
+  return '<div class="art-row" onclick="editArt(\''+a.id+'\')">'
+    +'<div class="art-thumb">'+thumb+'</div>'
+    +'<div class="art-body">'
+      +'<div class="art-name">'+(a.descBreve||'Articolo senza nome')+'</div>'
+      +'<div class="art-meta">'
+        +(a.tipologiaSiecic?'<span class="stag">'+a.tipologiaSiecic+'</span>':'')
+        +(a.sottocategoria?'<span style="color:var(--muted)">'+a.sottocategoria+'</span>':'')
+        +(a.qta>1?'<span>x'+a.qta+'</span>':'')
+        +(a.stato?'<span>'+a.stato+'</span>':'')
+        +'<span style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--muted)">'+a.qrCode+'</span>'
+      +'</div>'
+    +'</div>'
+    +'<div class="art-price"><div class="art-pv">'+fmtEur(vg)+'</div><div class="art-ps">Giud.</div><div class="art-ps">Merc: '+fmtEur(vt)+'</div></div>'
+    +'</div>';
+}
+
+// ── ARTICLE LIST (INVENTARIO) ─────────────────────────────────────────────────
+function renderArticoli(){
+  if(!currentProc)return go('dash');
+  var arts=(ls(AK)||[]).filter(function(a){return a.procId===currentProc.id&&(currentUser.isAdmin||!a.owner||a.owner===currentUser.id);});
+  var totVM=arts.reduce(function(s,a){return s+(parseFloat(a.valMercato||0)*parseFloat(a.qta||1));},0);
+  var totVG=arts.reduce(function(s,a){return s+(parseFloat(a.valGiud||0)*parseFloat(a.qta||1));},0);
+
+  var wrap=document.createElement('div');wrap.style.display='flex';wrap.style.gap='4px';
+  var ba=document.createElement('button');ba.className='btn btn-sm btn-primary';ba.textContent='+ Articolo';ba.onclick=function(){go('articolo');};wrap.appendChild(ba);
+  var bb=document.createElement('button');bb.className='btn btn-sm';bb.textContent='← Procedura';bb.onclick=renderProcDetail;wrap.appendChild(bb);
+  setTB('Inventario',currentProc.nome,wrap);
+
+  var el=g('content');el.innerHTML='';
+  var totbar=document.createElement('div');totbar.className='totbar';
+  totbar.innerHTML='<div class="tot-item"><div class="tot-lbl">Articoli</div><div class="tot-val">'+arts.length+'</div></div>'
+    +'<div class="tot-item"><div class="tot-lbl">Valore mercato</div><div class="tot-val" style="color:var(--brand);font-size:15px">'+fmtEur(totVM)+'</div></div>'
+    +'<div class="tot-item"><div class="tot-lbl">Valore giudiziale</div><div class="tot-val" style="color:#8b1a1a;font-size:15px">'+fmtEur(totVG)+'</div></div>';
+  el.appendChild(totbar);
+
+  if(arts.length){arts.forEach(function(a){el.innerHTML+=artRowHtml(a);});}
+  else{el.innerHTML+='<div style="text-align:center;padding:50px;color:var(--muted)">Nessun articolo ancora.</div>';}
+}
+
+// ── ARTICLE EDIT ──────────────────────────────────────────────────────────────
+function renderArticolo(){
+  if(!currentProc){go('dash');return;}
+  if(!editingArt&&currentProc.status!=='attiva'){
+    notify('Procedura non attiva: impossibile aggiungere articoli','warn',3000);
+    renderProcDetail();return;
+  }
+  artTab=1;
+  if(!editingArt){artPhotos=[];aiScanImageB64=null;window._aiDraft=null;}
+  setTB(editingArt?'Modifica articolo':'Nuovo articolo',currentProc.nome,'');
+  var el=g('content');
+  el.innerHTML='<div class="art-tabs">'
+    +'<div class="at on" id="at1" onclick="setArtTab(1)">📷 Foto &amp; AI</div>'
+    +'<div class="at" id="at2" onclick="setArtTab(2)">📋 Dati SIECIC</div>'
+    +'<div class="at" id="at3" onclick="setArtTab(3)">◈ QR Code</div>'
+    +'<div class="at" id="at4" onclick="setArtTab(4)">💰 Valori</div>'
+    +'</div><div id="art-tab-content"></div>';
+  renderArtTab();renderAISection();
+  g('photo-input').onchange=function(e){
+    Array.from(e.target.files).forEach(function(f){
+      if(artPhotos.length>=8)return;
+      var r=new FileReader();r.onload=function(ev){artPhotos.push(ev.target.result);renderArtTab();renderAISection();};r.readAsDataURL(f);
+    });e.target.value='';
+  };
+  g('ai-scan-input').onchange=function(e){
+    var f=e.target.files[0];if(!f)return;
+    var r=new FileReader();r.onload=function(ev){aiScanImageB64=ev.target.result;if(!artPhotos.includes(aiScanImageB64))artPhotos.unshift(aiScanImageB64);renderArtTab();renderAISection();};
+    r.readAsDataURL(f);e.target.value='';
+  };
+}
+
+function setArtTab(n){
+  artTab=n;
+  for(var i=1;i<=4;i++){var el=g('at'+i);if(el)el.classList.toggle('on',i===n);}
+  renderArtTab();
+}
+
+function renderArtTab(){
+  var el=g('art-tab-content');if(!el)return;
+  var a=Object.assign({},editingArt||{},window._aiDraft||{});
+  var sedi=getSediProc(currentProc);
+  var sediBeni=sedi.filter(function(s){return s.hasBeni;});
+  var sedeDefault=sedi.find(function(s){return s.isDefault;})||(sediBeni[0]||sedi[0]);
+  var curSedeId=a.sedeId||(sedeDefault?sedeDefault.id:'');
+
+  if(artTab===1){
+    var html='<div class="ai-box"><div class="ai-hdr"><div class="ai-title">✦ Analisi AI con visione</div></div>'
+      +'<p style="font-size:12px;color:var(--muted);margin-bottom:8px">Carica foto e premi Analizza per riconoscere il bene e stimare i valori</p>'
+      +'<div id="ai-analysis-result"></div></div>'
+      +'<div class="photo-grid">';
+    for(var i=0;i<8;i++){
+      if(artPhotos[i]){html+='<div class="photo-slot"><img src="'+artPhotos[i]+'"><button class="del-btn" onclick="event.stopPropagation();removePhoto('+i+')">✕</button></div>';}
+      else if(i===artPhotos.length){html+='<div class="photo-slot" onclick="g(\'photo-input\').click()"><div class="add-icon">+</div><div class="add-txt">Aggiungi</div></div>';}
+      else{html+='<div class="photo-slot" style="opacity:.3"></div>';}
+    }
+    html+='</div>';
+    el.innerHTML=html;
+    renderAISection();
+  }
+  else if(artTab===2){
+    var sotto=SIECIC_SOTTOCATEGORIE[a.tipologiaSiecic||'BENE MOBILE']||[];
+    el.innerHTML='<div class="card"><div class="card-title">Classificazione SIECIC</div>'
+      +'<div class="fg">'
+      +'<div class="inp-row"><label>Tipologia SIECIC</label><select id="a-tipo" onchange="updateSottocategorie(this.value)">'+SIECIC_TIPOLOGIE.map(function(t){return'<option'+(t===a.tipologiaSiecic?' selected':'')+'>'+t+'</option>';}).join('')+'</select></div>'
+      +'<div class="inp-row"><label>Sottocategoria</label><select id="a-sottocat">'+sotto.map(function(s){return'<option'+(s===a.sottocategoria?' selected':'')+'>'+s+'</option>';}).join('')+'</select></div>'
+      +'<div class="inp-row full"><label>Descrizione breve *</label><input id="a-desc-breve" value="'+(a.descBreve||'')+'" placeholder="ES: Tornio CNC Fanuc"></div>'
+      +'<div class="inp-row full"><label>Descrizione estesa</label><textarea id="a-desc-estesa">'+(a.descEstesa||'')+'</textarea></div>'
+      +'<div class="inp-row"><label>Marca</label><input id="a-marca" value="'+(a.marca||'')+'" placeholder="ES: Fanuc"></div>'
+      +'<div class="inp-row"><label>Modello</label><input id="a-modello" value="'+(a.modello||'')+'" placeholder="ES: RoboDrill"></div>'
+      +'<div class="inp-row"><label>Anno</label><input id="a-anno" value="'+(a.anno||'')+'" placeholder="ES: 2018"></div>'
+      +'<div class="inp-row"><label>Km (veicoli)</label><input id="a-km" value="'+(a.km||'')+'" placeholder="ES: 120000"></div>'
+      +'<div class="inp-row"><label>Titolo/Diritto</label><select id="a-titolo">'+FALLCO_TITOLI.map(function(t){return'<option'+(t===(a.titolo||'Proprietà')?' selected':'')+'>'+t+'</option>';}).join('')+'</select></div>'
+      +'<div class="inp-row"><label>Quota %</label><input id="a-quota" type="number" value="'+(a.quota||100)+'" min="0" max="100"></div>'
+      +'<div class="inp-row"><label>Misura</label><select id="a-misura">'+SIECIC_MISURE.map(function(m){return'<option'+(m===(a.misura||'NR')?' selected':'')+'>'+m+'</option>';}).join('')+'</select></div>'
+      +'<div class="inp-row"><label>Quantità</label><input id="a-qta" type="number" value="'+(a.qta||1)+'" min="1" oninput="autoCalcGiud()"></div>'
+      +'<div class="inp-row"><label>Stato d\'uso</label><select id="a-stato"><option value="">—</option>'+['Ottimo','Buono','Discreto','Deteriorato','Non funzionante'].map(function(s){return'<option'+(s===a.stato?' selected':'')+'>'+s+'</option>';}).join('')+'</select></div>'
+      +'<div class="inp-row"><label>N. seriale / Targa</label><input id="a-serial" value="'+(a.serial||'')+'" placeholder="ES: XXXXXXXXXXX"></div>'
+      +'<div class="inp-row"><label>Sede del bene</label><select id="a-sede">'+sediBeni.map(function(s){return'<option value="'+s.id+'"'+(s.id===curSedeId?' selected':'')+'>'+s.nome+'</option>';}).join('')+'</select></div>'
+      +'</div></div>';
+  }
+  else if(artTab===3){
+    var procSigla=(currentProc.nome||'').replace(/\s/g,'').substring(0,3).toUpperCase();
+    var tribSigla=(currentProc.tribunale||'XX').substring(0,2).toUpperCase();
+    var artCount=String((ls(AK)||[]).filter(function(x){return x.procId===currentProc.id;}).length+(editingArt?0:1)).padStart(3,'0');
+    var defaultQR=a.qrCode||(procSigla+'-'+tribSigla+'-'+artCount);
+    el.innerHTML='<div class="card"><div class="card-title">QR Code articolo</div>'
+      +'<div style="display:flex;align-items:flex-start;gap:24px;flex-wrap:wrap">'
+      +'<div id="qrcanvas" style="width:100px;height:100px"></div>'
+      +'<div style="flex:1;min-width:200px">'
+      +'<div style="font-size:12px;color:var(--muted);margin-bottom:6px">Codice QR</div>'
+      +'<div id="qr-val-show" style="margin-bottom:10px"><span style="font-size:15px;font-weight:600;font-family:\'DM Mono\',monospace;color:var(--brand)">'+defaultQR+'</span></div>'
+      +'<input type="hidden" id="qr-hidden" value="'+defaultQR+'">'
+      +'<div style="display:flex;gap:8px;flex-wrap:wrap">'
+      +'<button class="btn btn-sm" onclick="openManualQRDialog()">✏️ Modifica codice</button>'
+      +'<button class="btn btn-sm" onclick="printQR()">🖨️ Stampa QR</button>'
+      +'</div></div></div></div>';
+    // Render QR
+    var qrc=g('qrcanvas');if(qrc){try{new QRCode(qrc,{text:defaultQR,width:100,height:100,colorDark:'#1a1a16',colorLight:'#fff'});}catch(e){}}
+  }
+  else if(artTab===4){
+    el.innerHTML='<div class="card"><div class="card-title">Valorizzazione</div>'
+      +'<div class="fg">'
+      +'<div class="inp-row"><label>Valore unitario di mercato (€)</label><input id="a-vmkt" type="number" value="'+(a.valMercato||'')+'" placeholder="ES: 5000" oninput="autoCalcGiud()"></div>'
+      +'<div class="inp-row"><label>Valore Giudiziale = 25% (€)</label><input id="a-vgiu" type="number" value="'+(a.valGiud||'')+'" placeholder="Calcolato automaticamente"></div>'
+      +'<div class="inp-row"><label>Data perizia</label><input id="a-dperizia" type="date" value="'+(a.dataperizia||'')+'"></div>'
+      +'<div class="inp-row"><label>Codice lotto</label><input id="a-lotto" value="'+(a.codLotto||'')+'" placeholder="ES: L001"></div>'
+      +'<div class="inp-row full"><label>Note tecniche</label><textarea id="a-note" placeholder="ES: Macchinario funzionante">'+(a.note||'')+'</textarea></div>'
+      +'</div>'
+      +'<div style="background:var(--bg);border-radius:var(--radius);padding:12px 16px;margin-bottom:16px;font-size:13px">'
+      +'<span style="color:var(--muted)">Valore stima totale (qtà × mercato):</span> <span id="vt-display" style="font-weight:600;font-family:\'DM Mono\',monospace;color:var(--brand)">'+fmtEur((a.valMercato||0)*(a.qta||1))+'</span>'
+      +' &nbsp;|&nbsp; <span style="color:var(--muted)">Giudiziale:</span> <span id="vg-display" style="font-weight:600;font-family:\'DM Mono\',monospace;color:#8b1a1a">'+fmtEur((a.valGiud||0)*(a.qta||1))+'</span>'
+      +'</div>'
+      +'<div style="display:flex;gap:8px;justify-content:flex-end;align-items:center">'
+      +(editingArt?'<button class="btn btn-sm btn-danger" onclick="deleteArt(\''+a.id+'\')">🗑 Elimina articolo</button>':'')
+      +'<button class="btn" onclick="go(\'articoli\')">Annulla</button>'
+      +'<button class="btn btn-primary" onclick="saveArticolo()">💾 Salva articolo</button>'
+      +'</div></div>';
+  }
+}
+
+function updateSottocategorie(tipo){
+  var sel=g('a-sottocat');if(!sel)return;
+  var opts=SIECIC_SOTTOCATEGORIE[tipo]||['Altro'];
+  sel.innerHTML=opts.map(function(s){return'<option>'+s+'</option>';}).join('');
+}
+
+function renderAISection(){
+  var el=g('ai-analysis-result');if(!el)return;
+  el.innerHTML='';
+  var btn=document.createElement('button');btn.className='btn-ai';
+  if(artPhotos.length){
+    btn.innerHTML='✦ Analizza con AI e stima i valori';
+    btn.onclick=analyzeWithAI;
+  }else{
+    btn.innerHTML='✦ Analizza con AI e stima i valori';
+    btn.disabled=true;
+    var hint=document.createElement('div');hint.style.cssText='font-size:11px;color:var(--muted);margin-top:5px;text-align:center';hint.textContent='↑ Carica prima almeno una foto';
+    el.appendChild(btn);el.appendChild(hint);return;
+  }
+  el.appendChild(btn);
+}
+
+function autoCalcGiud(){
+  var vmEl=g('a-vmkt'),vgEl=g('a-vgiu'),qtaEl=g('a-qta');
+  if(!vmEl||!vgEl)return;
+  var vm=parseFloat(vmEl.value||0),qta=parseFloat(qtaEl?qtaEl.value||1:1);
+  if(vm>0){vgEl.value=Math.round(vm*0.25);}
+  var vtD=g('vt-display'),vgD=g('vg-display');
+  if(vtD)vtD.textContent=fmtEur(vm*qta);
+  if(vgD)vgD.textContent=fmtEur(Math.round(vm*0.25)*qta);
+}
+
+function saveArticolo(){
+  // Read from DOM, fallback to _aiDraft for fields not in current tab
+  var _dr=window._aiDraft||{};
+  var _ea=editingArt||{};
+  function rv(id,key){var v=vv(id);return v||(key?(_dr[key]||_ea[key]||''):'');}
+  var d={
+    tipologiaSiecic:rv('a-tipo','tipologiaSiecic'),sottocategoria:rv('a-sottocat','sottocategoria'),
+    descBreve:rv('a-desc-breve','descBreve'),descEstesa:rv('a-desc-estesa','descEstesa'),
+    marca:rv('a-marca','marca'),modello:rv('a-modello','modello'),anno:rv('a-anno','anno'),km:rv('a-km','km'),
+    titolo:rv('a-titolo','titolo'),quota:parseFloat(vv('a-quota'))||_ea.quota||100,
+    misura:rv('a-misura','misura'),qta:parseFloat(vv('a-qta'))||_ea.qta||1,stato:rv('a-stato','stato'),
+    serial:rv('a-serial','serial'),sedeId:rv('a-sede','sedeId'),
+    valMercato:rv('a-vmkt','valMercato'),valGiud:rv('a-vgiu','valGiud'),
+    dataperizia:rv('a-dperizia','dataperizia'),codLotto:rv('a-lotto','codLotto'),note:rv('a-note','note'),
+    qrCode:rv('qr-hidden','qrCode')
+  };
+  if(!d.descBreve)return notify('Inserisci almeno una descrizione breve','warn');
+  if((!d.valGiud||parseFloat(d.valGiud)===0)&&d.valMercato)d.valGiud=Math.round(parseFloat(d.valMercato)*0.25);
+  var arts=ls(AK)||[];
+  if(editingArt){
+    var idx=arts.findIndex(function(a){return a.id===editingArt.id;});
+    if(idx>=0)arts[idx]=Object.assign({},arts[idx],d,{photos:artPhotos});
+  }else{
+    var n=String(arts.filter(function(a){return a.procId===currentProc.id;}).length+1).padStart(3,'0');
+    var procSigla=(currentProc.nome||'').replace(/\s/g,'').substring(0,3).toUpperCase();
+    var tribSigla=(currentProc.tribunale||'XX').substring(0,2).toUpperCase();
+    arts.push(Object.assign({id:'a'+Date.now(),procId:currentProc.id,owner:currentUser.id,createdAt:new Date().toISOString()},d,{photos:artPhotos,qrCode:d.qrCode||(procSigla+'-'+tribSigla+'-'+n)}));
+  }
+  lss(AK,arts);editingArt=null;artPhotos=[];aiScanImageB64=null;window._aiDraft=null;
+  notify('Articolo salvato','ok',2500);renderProcDetail();
+}
+
+function editArt(id){
+  editingArt=(ls(AK)||[]).find(function(a){return a.id===id;});
+  artPhotos=(editingArt&&editingArt.photos&&editingArt.photos.slice())||[];
+  aiScanImageB64=artPhotos[0]||null;
+  go('articolo');
+}
+
+function deleteArt(id){
+  var a=(ls(AK)||[]).find(function(x){return x.id===id;});if(!a)return;
+  customConfirm('Eliminare "'+( a.descBreve||'questo articolo')+'"?\n\nOperazione irreversibile.',function(){
+    lss(AK,(ls(AK)||[]).filter(function(x){return x.id!==id;}));
+    editingArt=null;artPhotos=[];window._aiDraft=null;
+    notify('Articolo eliminato','ok',2000);renderProcDetail();
+  });
+}
+
+function removePhoto(i){artPhotos.splice(i,1);if(i===0)aiScanImageB64=artPhotos[0]||null;renderArtTab();renderAISection();}
+
+// ── QR CODE ───────────────────────────────────────────────────────────────────
+function openManualQRDialog(){
+  var current=(g('qr-hidden')&&g('qr-hidden').value)||'';
+  var show=g('qr-val-show');if(!show)return;
+  show.innerHTML='';
+  var inp=document.createElement('input');
+  inp.type='text';inp.value=current;inp.placeholder='ES: DNR-LC-001';
+  inp.style.cssText='font-family:\'DM Mono\',monospace;font-size:14px;border:1.5px solid var(--brand);border-radius:6px;padding:5px 10px;width:180px;outline:none;margin-right:6px';
+  inp.onkeydown=function(e){if(e.key==='Enter')applyManualQR();};
+  var btn=document.createElement('button');btn.className='btn btn-sm btn-primary';btn.textContent='✓ Applica';btn.onclick=applyManualQR;
+  show.appendChild(inp);show.appendChild(btn);
+  setTimeout(function(){inp.focus();inp.select();},50);
+}
+function applyManualQR(){
+  var inp=document.querySelector('#qr-val-show input');if(!inp)return;
+  var v=inp.value.trim();if(!v)return;
+  g('qr-hidden').value=v;
+  var show=g('qr-val-show');if(show){show.innerHTML='';var sp=document.createElement('span');sp.style.cssText='font-size:15px;font-weight:600;font-family:\'DM Mono\',monospace;color:var(--brand)';sp.textContent=v;show.appendChild(sp);}
+  var b=g('qrcanvas');if(b){b.innerHTML='';try{new QRCode(b,{text:v,width:100,height:100,colorDark:'#1a1a16',colorLight:'#fff'});}catch(e){}}
+}
+function printQR(){
+  var qr=g('qr-hidden')&&g('qr-hidden').value;if(!qr)return;
+  var w=window.open('','_blank');if(!w)return;
+  var sc='scr'+'ipt';
+  var s1='<'+sc+' src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></'+sc+'>';
+  var s2='<'+sc+'>new QRCode(document.getElementById("qrp"),{text:"'+qr+'",width:200,height:200})</'+sc+'>';
+  w.document.write('<html><head><meta charset="UTF-8"></head><body style="text-align:center;padding:40px;font-family:sans-serif"><h3>InventPro – QR</h3><div id="qrp"></div><p style="margin-top:14px;font-family:monospace">'+qr+'</p>'+s1+s2+'</body></html>');
+  setTimeout(function(){w.print();},800);
+}
+function startQRScan(){
+  var isMobile=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+  if(isMobile){
+    var area=g('qr-scan-area');if(!area)return;
+    area.style.display='block';
+    navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}})
+      .then(function(stream){var video=g('qr-video');if(video){video.srcObject=stream;video.play();}})
+      .catch(function(){var a=g('qr-scan-area');if(a)a.style.display='none';notify('Fotocamera non disponibile','warn');});
+  }else{
+    var c=prompt('Inserisci codice QR:');if(c)showScanResult(c);
+  }
+}
+function stopQRScan(){
+  var video=g('qr-video');if(video&&video.srcObject){video.srcObject.getTracks().forEach(function(t){t.stop();});video.srcObject=null;}
+  var area=g('qr-scan-area');if(area)area.style.display='none';
+}
+
+// ── SCANNER ───────────────────────────────────────────────────────────────────
+function renderScanner(){
+  setTB('Scanner QR','Cerca articolo tramite QR code','');
+  g('content').innerHTML='<div class="card"><div class="card-title">Scansiona QR Code</div>'
+    +'<div style="text-align:center;padding:30px">'
+    +'<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:16px">'
+    +'<button class="btn btn-primary" onclick="startQRScan()">📷 Fotocamera / Inserisci codice</button>'
+    +'</div></div>'
+    +'<div id="qr-scan-area" style="display:none;padding:0 16px 16px">'
+    +'<video id="qr-video" style="width:100%;max-height:240px;border-radius:8px;background:#000" autoplay playsinline></video>'
+    +'<button class="btn btn-danger btn-sm" onclick="stopQRScan()" style="margin-top:8px">✕ Chiudi</button>'
+    +'</div>'
+    +'<div id="scan-result" style="margin-top:12px"></div></div>';
+}
+function showScanResult(code){
+  var a=(ls(AK)||[]).find(function(x){return x.qrCode===code&&(currentUser.isAdmin||!x.owner||x.owner===currentUser.id);});
+  var el=g('scan-result');if(!el)return;
+  if(!a){el.innerHTML='<div class="card" style="border-color:var(--danger)"><strong style="color:var(--danger)">Non trovato: '+code+'</strong></div>';return;}
+  var proc=(ls(PK)||[]).find(function(p){return p.id===a.procId;});
+  var vm=parseFloat(a.valMercato||0)*parseFloat(a.qta||1),vg=parseFloat(a.valGiud||0)*parseFloat(a.qta||1);
+  el.innerHTML='<div class="card" style="border-color:var(--brand)">'
+    +'<div class="card-title" style="color:var(--brand)">✓ Trovato</div>'
+    +(a.photos&&a.photos[0]?'<img src="'+a.photos[0]+'" style="width:100%;max-height:160px;object-fit:cover;border-radius:8px;margin-bottom:12px">':'')
+    +'<table style="font-size:13px"><tr><td style="color:var(--muted);padding:4px 12px 4px 0">QR</td><td style="font-family:\'DM Mono\',monospace;font-weight:500">'+a.qrCode+'</td></tr>'
+    +'<tr><td style="color:var(--muted);padding:4px 12px 4px 0">Procedura</td><td>'+(proc?proc.nome:'-')+'</td></tr>'
+    +'<tr><td style="color:var(--muted);padding:4px 12px 4px 0">Descrizione</td><td>'+(a.descBreve||'-')+'</td></tr>'
+    +'<tr><td style="color:var(--muted);padding:4px 12px 4px 0">Val. mercato</td><td style="color:var(--brand);font-weight:600;font-family:\'DM Mono\',monospace">'+fmtEur(vm)+'</td></tr>'
+    +'<tr><td style="color:var(--muted);padding:4px 12px 4px 0">Val. giudiziale</td><td style="color:#8b1a1a;font-weight:600;font-family:\'DM Mono\',monospace">'+fmtEur(vg)+'</td></tr></table>'
+    +'<button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="editArt(\''+a.id+'\')">✎ Modifica</button></div>';
+}
+
+// ── AI ANALYSIS ───────────────────────────────────────────────────────────────
+function analyzeWithAI(){
+  if(!artPhotos.length)return notify('Carica prima una foto','warn');
+  var resultBox=g('ai-analysis-result');
+  if(!resultBox)return;
+  resultBox.innerHTML='<div style="text-align:center;padding:16px;color:var(--muted)"><div style="font-size:22px;margin-bottom:8px">🔍</div>Analisi in corso...</div>';
+  var imgB64=artPhotos[0].replace(/^data:[^;]+;base64,/,'');
+  var mtype=artPhotos[0].match(/^data:([^;]+);/);
+  var mediaType=(mtype?mtype[1]:'image/jpeg');
+  var _apiKey=getApiKey();
+  if(!_apiKey||_apiKey.length<20){resultBox.innerHTML='<div style="color:var(--danger);font-size:12px">API Key mancante. Vai in Impostazioni e inserisci la chiave sk-ant-...</div>';return;}
+  fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':_apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',max_tokens:1000,
+      messages:[{role:'user',content:[
+        {type:'image',source:{type:'base64',media_type:mediaType,data:imgB64}},
+                {type:'text',text:'Sei un perito per inventari nelle procedure concorsuali italiane.\nAnalizza il bene nella foto e rispondi SOLO con un oggetto JSON valido, niente altro.\nTipologie SIECIC: BENE MOBILE, BENE MOBILE REGISTRATO, BENE IMMOBILE, CREDITO, PARTECIPAZIONE, BENE IMMATERIALE, AZIENDA/RAMO D AZIENDA, ALTRO.\nSottocategorie BENE MOBILE: Arredi ufficio, Arredi negozio, Macchinari industriali, Attrezzature, Informatica e elettronica, Utensili e attrezzi, Merci e scorte, Materie prime, Prodotti finiti, Altro.\nSottocategorie BENE MOBILE REGISTRATO: Autovettura, Autocarro, Motoveicolo, Natante, Aeromobile, Macchina operatrice, Altro.\nFormato: {"tipologiaSiecic":"BENE MOBILE","sottocategoria":"Informatica e elettronica","descBreve":"descrizione breve","descEstesa":"descrizione estesa","marca":"","modello":"","stato":"Buono","valMercato":500,"valGiud":125}.\nScegli tipologia e sottocategoria piu adatte. valMercato deve essere un numero intero (es. 500, 1200, 3000), NON una stringa. valGiud deve essere esattamente il 25% di valMercato come numero intero. Stima valMercato in base alle condizioni di mercato italiano per beni usati in procedura concorsuale.'}
+      ]}]
+    })
+  }).then(function(r){return r.json();})
+  .then(function(data){
+    var text='';
+    if(data.content){for(var _i=0;_i<data.content.length;_i++){if(data.content[_i]&&data.content[_i].type==='text'&&data.content[_i].text){text=data.content[_i].text;break;}}}
+    if(!text&&data.error){resultBox.innerHTML='<div style="color:var(--danger);font-size:12px">Errore API: '+JSON.stringify(data.error)+'<br><small>Verifica la API Key nelle impostazioni.</small></div>';return;}
+    if(!text){resultBox.innerHTML='<div style="color:var(--danger);font-size:12px">Risposta vuota dall AI.</div>';return;}
+    var clean=text.replace(/```json|```/g,'').trim();
+    var j1=clean.indexOf('{'),j2=clean.lastIndexOf('}');
+    if(j1>=0&&j2>j1)clean=clean.substring(j1,j2+1);
+    var parsed;try{parsed=JSON.parse(clean);}catch(e){resultBox.innerHTML='<div style="color:var(--danger);font-size:12px">Risposta AI non riconosciuta.<br><small style="font-family:monospace;font-size:10px">'+clean.substring(0,150)+'</small></div>';return;}
+    // Store parsed values globally for use after tab switch
+    var _vm=parsed.valMercato||parsed.valore_mercato||parsed.valoreMercato||0;
+    if(typeof _vm==='string')_vm=parseFloat(_vm.replace(/[^0-9.,]/g,'').replace(',','.'));
+    _vm=Math.round(_vm)||0;
+    window._aiResult={parsed:parsed,vm:_vm,vg:Math.round(_vm*0.25)};
+
+    // Step 1: fill text fields on tab 2
+    if(artTab!==2)setArtTab(2);
+    setTimeout(function(){
+      var p=window._aiResult.parsed;
+      // Save ALL AI fields to _aiDraft so they persist across tab switches
+      window._aiDraft=window._aiDraft||{};
+      if(p.tipologiaSiecic)window._aiDraft.tipologiaSiecic=p.tipologiaSiecic;
+      if(p.sottocategoria)window._aiDraft.sottocategoria=p.sottocategoria;
+      if(p.descBreve)window._aiDraft.descBreve=p.descBreve;
+      if(p.descEstesa)window._aiDraft.descEstesa=p.descEstesa;
+      if(p.marca)window._aiDraft.marca=p.marca;
+      if(p.modello)window._aiDraft.modello=p.modello;
+      if(p.stato)window._aiDraft.stato=p.stato;
+      // Re-render tab 2 to show the values
+      if(artTab!==2)setArtTab(2); else renderArtTab();
+      setTimeout(function(){
+        if(p.tipologiaSiecic)updateSottocategorie(p.tipologiaSiecic);
+        setTimeout(function(){if(p.sottocategoria&&g('a-sottocat'))g('a-sottocat').value=p.sottocategoria;},60);
+      },80);
+      // Step 2: store values so renderArtTab tab4 will use them
+      if(window._aiResult.vm>0){
+        if(!window._aiDraft)window._aiDraft={};
+        window._aiDraft.valMercato=window._aiResult.vm;
+        window._aiDraft.valGiud=window._aiResult.vg;
+      }
+      notify('Analisi AI completata! Clicca il tab Valori per vedere la stima.','ok',4000);
+    },100);
+  }).catch(function(e){resultBox.innerHTML='<div style="color:var(--danger);font-size:12px">'+e.message+'</div>';});
+}
+
+// ── REPORT ────────────────────────────────────────────────────────────────────
+function renderReport(){
+  setTB('Esporta','Genera PDF e file Fallco/SIECIC','');
+  g('content').innerHTML='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">'
+    +'<div class="card" style="text-align:center"><div style="font-size:32px;margin-bottom:10px">📷</div><div style="font-weight:600;margin-bottom:6px">Report fotografico</div><div style="font-size:12px;color:var(--muted);margin-bottom:14px">Frontespizio + foto + descrizioni.</div><button class="btn btn-primary btn-sm" style="width:100%;justify-content:center" onclick="genReport(false)">Genera PDF</button></div>'
+    +'<div class="card" style="text-align:center"><div style="font-size:32px;margin-bottom:10px">💰</div><div style="font-weight:600;margin-bottom:6px">Report estimativo</div><div style="font-size:12px;color:var(--muted);margin-bottom:14px">Valori mercato + giudiziale + totale.</div><button class="btn btn-sm" style="width:100%;justify-content:center;background:#8b1a1a;border-color:#8b1a1a;color:#fff" onclick="genReport(true)">Genera PDF</button></div>'
+    +'<div class="card" style="text-align:center"><div style="font-size:32px;margin-bottom:10px">📋</div><div style="font-weight:600;margin-bottom:6px">Fallco / SIECIC</div><div style="font-size:12px;color:var(--muted);margin-bottom:14px">XLSX 54 colonne formato Fallco.</div><button class="btn btn-sm" style="width:100%;justify-content:center;background:#d97706;border-color:#d97706;color:#fff" onclick="genExcelFallco()">Esporta XLSX</button></div>'
+    +'</div>'
+    +'<div id="rpt-progress" style="display:none;margin-top:14px"><div class="card"><div class="card-title" id="rpt-title"></div><div class="progress-bar"><div class="progress-fill" id="rpt-bar" style="width:0%"></div></div><div style="font-size:12px;color:var(--muted)" id="rpt-label"></div></div></div>';
+}
+
+function animProgress(title,steps,cb){
+  g('rpt-progress').style.display='block';g('rpt-title').textContent=title;
+  var p=0,si=0;
+  var iv=setInterval(function(){
+    p=Math.min(p+(Math.random()*8+3),100);
+    g('rpt-bar').style.width=Math.round(p)+'%';
+    si=Math.min(Math.floor(p/100*steps.length),steps.length-1);
+    g('rpt-label').textContent=steps[si];
+    if(p>=100){clearInterval(iv);setTimeout(cb,200);}
+  },100);
+}
+
+function genReport(estimativo){
+  if(!currentProc)return notify('Seleziona prima una procedura','warn');
+  var arts=(ls(AK)||[]).filter(function(a){return a.procId===currentProc.id&&(currentUser.isAdmin||!a.owner||a.owner===currentUser.id);});
+  if(!arts.length)return notify('Nessun articolo da esportare','warn');
+  buildPDF(arts,estimativo,null);
+}
+function makeQRPng(text,size,cb){
+  var tmp=document.createElement('div');tmp.style.cssText='position:fixed;left:-9999px;top:0';
+  document.body.appendChild(tmp);
+  try{
+    new QRCode(tmp,{text:text||'?',width:size||80,height:size||80,colorDark:'#000000',colorLight:'#ffffff'});
+    var att=0,tryGet=function(){
+      var can=tmp.querySelector('canvas'),img=tmp.querySelector('img'),src='';
+      if(can&&can.width>0)src=can.toDataURL('image/png');
+      else if(img&&img.src&&img.src.length>100)src=img.src;
+      if(src||att>20){document.body.removeChild(tmp);cb(src);}
+      else{att++;setTimeout(tryGet,60);}
+    };
+    setTimeout(tryGet,150);
+  }catch(e){document.body.removeChild(tmp);cb('');}
+}
+function buildPDF(arts,estimativo,_unused){
+  var qrJobs=[{key:'proc',text:(currentProc.nome||'')+' n.'+(currentProc.num||'')+' '+(currentProc.tribunale||'')}];
+  arts.forEach(function(a,i){qrJobs.push({key:'art'+i,text:a.qrCode||('ART-'+(i+1))});});
+  var qrData={},done=0;
+  qrJobs.forEach(function(job){
+    makeQRPng(job.text,80,function(src){qrData[job.key]=src;done++;if(done===qrJobs.length)doBuildPDF();});
+  });
+  function fmtEurLocal(n){return '\u20ac'+parseFloat(n||0).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2});}
+  function doBuildPDF(){
+    var S=getSettings(),proc=currentProc;
+    var foot=S.ragSoc+(S.indirizzo?' - '+S.indirizzo:'')+(S.cap?' - '+S.cap:'')+(S.comune?' '+S.comune:'')+(S.provincia?' ('+S.provincia+')':(S.comune?'':''))+(S.piva?' - P.I. '+S.piva:'');
+    var totVM=arts.reduce(function(s,a){return s+(parseFloat(a.valMercato||0)*parseFloat(a.qta||1));},0);
+    var totVG=arts.reduce(function(s,a){return s+(parseFloat(a.valGiud||0)*parseFloat(a.qta||1));},0);
+    var titoloDoc=estimativo?'Report estimativo':'Report fotografico beni mobili';
+    var logoHtml=S.logo?'<img src="'+S.logo+'" style="max-height:70px;max-width:200px;object-fit:contain">':'<div style="font-size:18px;font-weight:700;color:#1a3a6b">'+S.ragSoc+'</div>';
+    var procQRhtml=qrData['proc']?'<img src="'+qrData['proc']+'" style="width:72px;height:72px;flex-shrink:0">':'';
+    var coverTitle=estimativo?'REPORT ESTIMATIVO':'REPORT FOTOGRAFICO';
+    var coverSrc=proc.coverPhoto||'';
+    var coverImg=coverSrc?'<img src="'+coverSrc+'" style="max-width:320px;max-height:260px;object-fit:contain;display:block;margin:0 auto">':'';
+    var frontespizio='<div style="page-break-after:always;min-height:100vh;display:flex;flex-direction:column;padding:50px 60px;background:#fff;box-sizing:border-box">'
+      +'<div style="text-align:center;margin-bottom:auto">'
+        +'<div style="margin-bottom:24px">'+logoHtml+'</div>'
+        +'<div style="font-size:24px;font-weight:700;color:#1a1a16;letter-spacing:.03em;margin-bottom:28px">'+coverTitle+'</div>'
+        +'<div style="font-size:17px;color:#333;margin-bottom:8px">'+proc.tipo+'</div>'
+        +'<div style="font-size:15px;color:#555;margin-bottom:8px">N° '+(proc.num||'')+'</div>'
+        +'<div style="font-size:15px;color:#555">Tribunale di '+proc.tribunale+'</div>'
+      +'</div>'
+      +'<div style="flex:1;display:flex;align-items:center;justify-content:center;padding:20px 0">'+coverImg+'</div>'
+      +'<div style="text-align:center;margin-top:auto">'
+        +(proc.giudice?'<div style="font-size:14px;color:#333;margin-bottom:8px">Giudice Delegato: '+proc.giudice+'</div>':'')
+        +(proc.curatore?'<div style="font-size:14px;color:#333;margin-bottom:8px">Curatore: '+proc.curatore+'</div>':'')
+        +(proc.commissionario?'<div style="font-size:14px;color:#1a3a6b;margin-bottom:8px">Commissionario: '+proc.commissionario+'</div>':'')
+        +'<div style="margin-top:16px;border-top:1px solid #ddd;padding-top:8px;font-size:10px;color:#888">'+foot+'</div>'
+      +'</div>'
+    +'</div>';
+    var artRows=arts.map(function(a,i){
+      var artQRhtml=qrData['art'+i]?'<img src="'+qrData['art'+i]+'" style="width:66px;height:66px">':'';
+      var vm=parseFloat(a.valMercato||0)*parseFloat(a.qta||1);
+      var vg=parseFloat(a.valGiud||0)*parseFloat(a.qta||1);
+      var metaLeft='';
+      if(a.qrCode)metaLeft+='<tr><td class="lbl">Codice:</td><td>'+a.qrCode+'</td></tr>';
+      metaLeft+='<tr><td class="lbl">Quantit\u00e0:</td><td>'+(a.qta||1)+(a.misura&&a.misura!=='NR'?' '+a.misura:'UN')+'</td></tr>';
+      if(a.descBreve||a.descEstesa)metaLeft+='<tr><td class="lbl" style="vertical-align:top">Descrizione:</td><td>'+(a.descBreve||'')+(a.descEstesa?'<br>'+a.descEstesa:'')+'</td></tr>';
+      var metaRight='';
+      if(a.anno)metaRight+='<tr><td class="lbl">Anno:</td><td>'+a.anno+'</td></tr>';
+      if(a.km)metaRight+='<tr><td class="lbl">Km:</td><td>'+a.km+'</td></tr>';
+      if(a.stato)metaRight+='<tr><td class="lbl">Stato d\'uso:</td><td>'+a.stato+'</td></tr>';
+      if(a.marca)metaRight+='<tr><td class="lbl">Marca:</td><td>'+a.marca+'</td></tr>';
+      if(a.modello)metaRight+='<tr><td class="lbl">Modello:</td><td>'+a.modello+'</td></tr>';
+      if(a.titolo)metaRight+='<tr><td class="lbl">Diritto:</td><td>'+a.titolo+'</td></tr>';
+      var valoreHdr=estimativo?'<div style="margin-left:auto;font-size:12px;font-weight:700;padding:0 14px;white-space:nowrap">Valore di Stima: '+fmtEurLocal(vg)+'</div>':'';
+      var photosHtml='';
+      if(a.photos&&a.photos.length){photosHtml='<div class="photos-wrap"><div class="photos-lbl"><b>Fotografie:</b></div><div class="photos-row">'+a.photos.slice(0,8).map(function(p){return'<img src="'+p+'" class="photo">';}).join('')+'</div></div>';}
+      return '<div class="card"><div class="card-hdr"><div class="card-num">'+(i+1)+'</div><div class="card-title">'+(a.descBreve||'Articolo '+(i+1))+'</div>'+valoreHdr+'</div><table class="card-body"><tr><td class="qr-cell">'+artQRhtml+'</td><td class="meta-cell"><table class="meta-tbl">'+metaLeft+'</table></td>'+(metaRight?'<td class="meta-cell"><table class="meta-tbl">'+metaRight+'</table></td>':'')+'</tr></table>'+photosHtml+'</div>';
+    }).join('');
+    var totBanner=estimativo?'<div class="tot-banner-est"><b>Valore di Stima totale:</b> '+fmtEurLocal(totVG)+'</div>':'';
+    var printBtn='<div class="print-bar no-print"><div style="flex:1"><div style="font-weight:700;font-size:14px;margin-bottom:3px">&#128203; '+titoloDoc+'</div><div style="font-size:11px;opacity:.9">&#9312; Clicca <b>Stampa/Salva PDF</b> &nbsp;&#9313; Destinazione: <b>Salva come PDF</b> &nbsp;&#9314; Altre impostazioni: disattiva <b>Intestazioni e pi&egrave; di pagina</b> + attiva <b>Grafica di sfondo</b></div></div><button onclick="window.print()" class="print-btn">&#128424; Stampa / Salva PDF</button></div>';
+    var css='@page{size:A4 portrait;margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:11px;color:#222;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}@media print{html,body{margin:0;padding:0}.report-wrap{padding:12mm 12mm 16mm 12mm}}.print-bar{position:sticky;top:0;background:#1d4ed8;color:#fff;padding:10px 20px;display:flex;align-items:center;gap:16px;z-index:999}.print-btn{background:#fff;color:#1d4ed8;border:none;padding:8px 18px;border-radius:6px;font-weight:700;cursor:pointer;font-size:13px}.page-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:8px;border-bottom:2px solid #2d6a7f;margin-bottom:16px}.page-hdr-info{text-align:right;font-size:10px;line-height:1.7;color:#333}.page-hdr-info b{font-size:12px;color:#000;display:block}.page-footer{position:fixed;bottom:0;left:0;right:0;border-top:1px solid #bbb;padding:4px;font-size:9px;color:#666;text-align:center;background:#fff}.card{border:1px solid #aaa;margin-bottom:16px;page-break-inside:avoid;break-inside:avoid}.card-hdr{background:#1a3a5c;color:#fff;display:flex;align-items:center;-webkit-print-color-adjust:exact;print-color-adjust:exact}.card-num{width:36px;min-height:36px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;background:rgba(255,255,255,.15)}.card-title{font-size:13px;font-weight:700;padding:8px 10px;flex:1}.card-body{width:100%;border-collapse:collapse;padding:8px 12px}.qr-cell{width:88px;vertical-align:top;padding:8px 6px 8px 12px}.meta-cell{vertical-align:top;padding:8px 12px 8px 14px}.meta-tbl{border-collapse:collapse}.lbl{font-weight:700;padding-right:6px;white-space:nowrap;line-height:1.8;vertical-align:top}.photos-wrap{padding:0 12px 12px}.photos-lbl{margin-bottom:6px}.photos-row{display:flex;flex-wrap:wrap;gap:6px}.photo{width:190px;height:142px;object-fit:cover;border:1px solid #ccc}.tot-banner-est{background:#8b1a1a;color:#fff;padding:14px 24px;margin-top:16px;font-size:16px;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact}@media print{.no-print{display:none!important}.page-footer{position:fixed}}';
+    var pageHdr='<div class="page-hdr"><div>'+logoHtml+'</div><div style="display:flex;align-items:center;gap:10px"><div class="page-hdr-info"><b>'+titoloDoc+'</b>'+proc.tipo+' '+proc.nome+'<br>n\u00b0 '+(proc.num||'')+' - Tribunale di '+proc.tribunale+'<br>'+(proc.giudice?'Giudice: <em>'+proc.giudice+'</em><br>':'')+(proc.curatore?'Curatore: <em>'+proc.curatore+'</em>':'')+'</div>'+procQRhtml+'</div></div>';
+    var bodyHtml=printBtn+frontespizio+'<div class="report-wrap" style="padding:16px 16px 30px"><div class="page-footer">'+foot+'</div>'+pageHdr+artRows+totBanner+'</div>';
+    var html='<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><title>'+titoloDoc+'</title><style>'+css+'</style></head><body>'+bodyHtml+'</body></html>';
+    var fname=(estimativo?'Report_estimativo':'Report_fotografico')+'_'+(proc.nome||'').replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,19).replace(/:/g,'-')+'.html';
+    var blob=new Blob([html],{type:'text/html;charset=utf-8'});
+    var url=URL.createObjectURL(blob);
+    var a2=document.createElement('a');a2.href=url;a2.download=fname;document.body.appendChild(a2);a2.click();document.body.removeChild(a2);
+    setTimeout(function(){URL.revokeObjectURL(url);},3000);
+    notify('File scaricato! Aprilo e usa "Stampa \u2192 Salva come PDF"','ok',5000);
+    var ov=document.getElementById('print-overlay');if(ov){ov.style.display='none';ov.innerHTML='';}
+  }
+}
+function genExcelFallco(){
+  if(!currentProc)return notify('Seleziona prima una procedura','warn');
+  var arts=(ls(AK)||[]).filter(function(a){return a.procId===currentProc.id&&(currentUser.isAdmin||!a.owner||a.owner===currentUser.id);});
+  if(!arts.length)return notify('Nessun articolo','warn');
+  notify('Generazione Fallco XLSX...','ok',1500);
+  setTimeout(function(){
+    var wb=XLSX.utils.book_new();
+    var sedi=currentProc.sedi||[];var sl=sedi.find(function(s){return s.tipo==='legale';})||sedi[0]||{};
+    var hdr=['Descrizione','Tipologia','Societa/Socio','Titolo','Quota %','Codifica SIECIC','','','','','','','','','','Misura','Quantita','Valore stima unitario','Data deposito perizia','Nazione','Provincia','Comune','CAP','','Indirizzo','','','','','Codice Lotto','Descrizione Lotto','Note','','','','','','','','','','','','','','','','','','','Bene Terzo','Oggetto rivendica','Decisione'];
+    var rows=arts.map(function(a){
+      var sede=sedi.find(function(s){return s.id===a.sedeId;})||sl||{};
+      var note=[a.note,a.stato?'Stato: '+a.stato:'',a.anno?'Anno: '+a.anno:'',a.km?'Km: '+a.km:'',a.serial?'Seriale: '+a.serial:''].filter(Boolean).join(' | ');
+      var _cod=(SIECIC_CODICI[a.tipologiaSiecic]&&SIECIC_CODICI[a.tipologiaSiecic][a.sottocategoria])||'';
+      var _desc=a.descBreve||'';
+      return [_desc,a.tipologiaSiecic||'BENE MOBILE','',a.titolo||'Proprietà',parseFloat(a.quota)||100,_cod,'','','','','','','','','',a.misura||'NR',parseFloat(a.qta)||1,parseFloat(a.valMercato)||0,a.dataperizia||'',sede.nazione||'IT',sede.provincia||'',sede.comune||'',sede.cap||'','',sede.indirizzo||'','','','','',a.qrCode||a.codLotto||'',a.sottocategoria||'',note,'','','','','','','','','','','','','','','','','','',(a.titolo==='Bene terzo'?'SI':'NO'),(a.titolo==='Oggetto rivendica'?'SI':'NO'),''];
+    });
+    var ws=XLSX.utils.aoa_to_sheet([hdr].concat(rows));
+    XLSX.utils.book_append_sheet(wb,ws,'Inventario');
+    var totVM=arts.reduce(function(s,a){return s+(parseFloat(a.valMercato||0)*parseFloat(a.qta||1));},0);
+    var totVG=arts.reduce(function(s,a){return s+(parseFloat(a.valGiud||0)*parseFloat(a.qta||1));},0);
+    var totVG=arts.reduce(function(s,a){return s+(parseFloat(a.valGiud||0)*parseFloat(a.qta||1));},0);
+    var ws2=XLSX.utils.aoa_to_sheet([['PROCEDURA',currentProc.nome],['TIPO',currentProc.tipo],['N.',currentProc.num||''],['TRIBUNALE',currentProc.tribunale||''],['GIUDICE',currentProc.giudice||''],['CURATORE',currentProc.curatore||''],['DATA EXPORT',new Date().toLocaleDateString('it-IT')],['ARTICOLI',arts.length],['VALORE MERCATO',fmtEur(totVM)],['VALORE GIUDIZIALE',fmtEur(totVG)]]);
+    XLSX.utils.book_append_sheet(wb,ws2,'Procedura');
+    XLSX.writeFile(wb,'Fallco_'+(currentProc.nome.replace(/\s/g,'_'))+'_'+new Date().toISOString().slice(0,10)+'.xlsx');
+  });
+}
+
+// ── SETTINGS ──────────────────────────────────────────────────────────────────
+function renderSettings(){
+  setTB('Impostazioni','Impostazioni','');
+  var S=getSettings(),el=g('content');el.innerHTML='';
+
+  var upCard=document.createElement('div');upCard.className='card';upCard.style.marginBottom='14px';
+  upCard.innerHTML='<div class="card-title">&#128100; Il mio profilo</div>'
+    +'<div class="fg" style="margin-bottom:12px">'
+      +'<div class="inp-row full"><label>Nome e Cognome</label><div style="padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);font-size:13px;color:var(--muted)">'
+      +(currentUser.nome||'')+' '+(currentUser.cognome||'')+'</div></div>'
+      +'<div class="inp-row full"><label>Email</label><input id="up-email" type="email" value="'+(currentUser.email||'')+'"></div>'
+      +'<div class="inp-row"><label>Ruolo</label><select id="up-ruolo"><option>Curatore fallimentare</option><option>Liquidatore</option><option>Commissario</option><option>Delegato</option><option>Perito</option><option>Amministratore</option></select></div>'
+      +'<div class="inp-row"><label>Tribunale</label><input id="up-trib" value="'+(currentUser.tribunale||'')+'"></div>'
+      +'<div class="inp-row"><label>Telefono</label><input id="up-tel" value="'+(currentUser.tel||'')+'"></div>'
+      +'<div class="inp-row"><label>Indirizzo</label><input id="up-ind" value="'+(currentUser.indirizzo||'')+'"></div>'
+      +'<div class="inp-row"><label>Città</label><input id="up-citta" value="'+(currentUser.citta||'')+'"></div>'
+    +'</div>'
+    +'<div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:12px">'
+      +'<div style="font-size:12px;font-weight:600;margin-bottom:10px">Modifica password</div>'
+      +'<div class="fg">'
+        +'<div class="inp-row"><label>Password attuale</label><input id="up-pass-old" type="password" placeholder="••••••••"></div>'
+        +'<div class="inp-row"><label>Nuova password</label><input id="up-pass-new" type="password" placeholder="••••••••"></div>'
+        +'<div class="inp-row"><label>Conferma</label><input id="up-pass-confirm" type="password" placeholder="••••••••"></div>'
+      +'</div>'
+    +'</div>'
+    +'<div style="display:flex;justify-content:flex-end"><button class="btn btn-primary btn-sm" onclick="saveUserProfile()">Salva modifiche</button></div>';
+  setTimeout(function(){var s=document.getElementById('up-ruolo');if(s)s.value=currentUser.ruolo||'Curatore fallimentare';},50);
+  el.appendChild(upCard);
+  if(!currentUser.isAdmin)return;
+
+  var c1=document.createElement('div');c1.className='card';c1.style.marginBottom='14px';
+  c1.innerHTML='<div class="card-title">🏢 Dati societari</div>'
+    +'<div class="fg"><div class="inp-row full"><label>Ragione sociale</label><input id="s-rs"></div>'
+    +'<div class="inp-row full"><label>Indirizzo</label><input id="s-ind"></div>'
+    +'<div class="inp-row"><label>Comune</label><input id="s-com"></div>'
+    +'<div class="inp-row"><label>CAP</label><input id="s-cap"></div>'
+    +'<div class="inp-row"><label>Provincia</label><input id="s-prov"></div>'
+    +'<div class="inp-row"><label>P.IVA</label><input id="s-piva"></div>'
+    +'<div style="border-top:1px solid var(--border);margin-top:14px;padding-top:14px">'
+    +'<div style="font-size:13px;font-weight:600;margin-bottom:4px">&#129302; API Key Anthropic</div>'
+    +'<div style="font-size:11px;color:var(--muted);margin-bottom:8px">Necessaria per analisi AI foto articoli. Ottienila su <a href="https://console.anthropic.com" target="_blank" style="color:var(--brand)">console.anthropic.com</a></div>'
+    +'<input id="s-apikey" type="password" placeholder="sk-ant-..." style="width:100%">'
+    +'</div></div>';
+  el.appendChild(c1);
+  g('s-rs').value=S.ragSoc||'';g('s-ind').value=S.indirizzo||'';g('s-com').value=S.comune||'';
+  g('s-cap').value=S.cap||'';g('s-prov').value=S.provincia||'';g('s-piva').value=S.piva||'';
+  if(g('s-apikey'))g('s-apikey').value=S.apiKey||'';
+
+  var c2=document.createElement('div');c2.className='card';c2.style.marginBottom='14px';
+  c2.innerHTML='<div class="card-title">🖼 Logo aziendale</div>';
+  var flex=document.createElement('div');flex.style.cssText='display:flex;align-items:flex-start;gap:16px';
+  var lp=document.createElement('div');lp.id='logo-prev';
+  lp.style.cssText='width:200px;height:72px;border:1.5px dashed var(--border2);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:var(--bg)';
+  lp.onclick=function(){document.getElementById('logo-input').click();};
+  if(S.logo){var img=document.createElement('img');img.src=S.logo;img.style.cssText='max-width:100%;max-height:100%;object-fit:contain';lp.appendChild(img);}
+  else{var sp=document.createElement('span');sp.style.cssText='font-size:12px;color:var(--muted)';sp.textContent='Clicca per caricare';lp.appendChild(sp);}
+  var ba=document.createElement('div');
+  var bl=document.createElement('button');bl.className='btn btn-sm btn-primary';bl.textContent='Carica logo';bl.onclick=function(){document.getElementById('logo-input').click();};ba.appendChild(bl);
+  if(S.logo){var br=document.createElement('button');br.className='btn btn-sm btn-danger';br.style.marginLeft='8px';br.textContent='Rimuovi';br.onclick=removeLogo;ba.appendChild(br);}
+  flex.appendChild(lp);flex.appendChild(ba);c2.appendChild(flex);el.appendChild(c2);
+
+  var cu=document.createElement('div');cu.className='card';cu.style.marginBottom='14px';
+  cu.innerHTML='<div class="card-title">&#128100; Gestione utenti</div><p style="font-size:13px;color:var(--muted);margin-bottom:12px">Visualizza e gestisci gli utenti registrati.</p><button class="btn btn-primary btn-sm" onclick="go(\x27admin\x27)">Apri gestione utenti &#x2192;</button>';
+  el.appendChild(cu);
+
+  var sr=document.createElement('div');sr.style.cssText='display:flex;justify-content:flex-end';
+  var bs=document.createElement('button');bs.className='btn btn-primary';bs.innerHTML='💾 Salva';bs.onclick=saveSettings;sr.appendChild(bs);el.appendChild(sr);
+
+  document.getElementById('logo-input').onchange=function(e){
+    var f=e.target.files[0];if(!f)return;
+    var r=new FileReader();r.onload=function(ev){var S2=getSettings();S2.logo=ev.target.result;lss(SK,S2);var lp2=g('logo-prev');if(lp2){lp2.innerHTML='';var img2=document.createElement('img');img2.src=ev.target.result;img2.style.cssText='max-width:100%;max-height:100%;object-fit:contain';lp2.appendChild(img2);}};
+    r.readAsDataURL(f);e.target.value='';
+  };
+}
+const DEFAULT_API_KEY='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';
+function getApiKey(){if(typeof DEFAULT_API_KEY!=='undefined'&&DEFAULT_API_KEY&&DEFAULT_API_KEY.length>10)return DEFAULT_API_KEY;var s=getSettings();if(s.apiKey&&s.apiKey.length>10)return s.apiKey;try{var d=localStorage.getItem('ip_apikey');if(d&&d.length>10)return d;}catch(e){}return '';}
+function removeLogo(){var S=getSettings();S.logo='';lss(SK,S);renderSettings();}
+function saveUserProfile(){
+  var users=ls(UK)||[];var idx=users.findIndex(function(u){return u.id===currentUser.id;});
+  if(idx<0)return notify('Utente non trovato','err');
+  var email=document.getElementById('up-email').value.trim();
+  if(!email)return notify('Email obbligatoria','warn');
+  if(users.find(function(u,i){return u.email===email&&i!==idx;}))return notify('Email già usata','err');
+  var op=document.getElementById('up-pass-old').value,np=document.getElementById('up-pass-new').value,cp=document.getElementById('up-pass-confirm').value;
+  if(op||np||cp){
+    if(!op)return notify('Inserisci la password attuale','warn');
+    if(users[idx].pass!==op)return notify('Password attuale non corretta','err');
+    if(!np)return notify('Inserisci la nuova password','warn');
+    if(np!==cp)return notify('Le password non coincidono','err');
+    users[idx].pass=np;
+  }
+  users[idx].email=email;users[idx].ruolo=document.getElementById('up-ruolo').value;
+  users[idx].tribunale=document.getElementById('up-trib').value.trim();
+  users[idx].tel=document.getElementById('up-tel').value.trim();
+  users[idx].indirizzo=document.getElementById('up-ind').value.trim();
+  users[idx].citta=document.getElementById('up-citta').value.trim();
+  lss(UK,users);currentUser=users[idx];lss(CK,currentUser.id);
+  var un=document.getElementById('user-name');if(un)un.textContent=currentUser.nome||'User';
+  notify('Profilo aggiornato','ok',2500);go('dash');
+}
+function saveSettings(){var ak=g('s-apikey')?g('s-apikey').value.trim():'';if(ak&&ak.length>10){try{localStorage.setItem('ip_apikey',ak);}catch(e){}}lss(SK,{ragSoc:vv('s-rs'),indirizzo:vv('s-ind'),comune:vv('s-com'),cap:vv('s-cap'),provincia:vv('s-prov'),piva:vv('s-piva'),logo:getSettings().logo||'',apiKey:ak||getSettings().apiKey||''});notify('Impostazioni salvate','ok',2500);}
+
+// ── ADMIN ──────────────────────────────────────────────────────────────────────
+function exportUtentiExcel(){
+  var users=ls(UK)||[];
+  var wb=XLSX.utils.book_new();
+  var hdr=['Nome','Cognome','Email','Ruolo','Tribunale','Telefono','Indirizzo','Citta','Registrato','Admin'];
+  var rows=users.map(function(u){return[u.nome||'',u.cognome||'',u.email||'',u.ruolo||'',u.tribunale||'',u.tel||'',u.indirizzo||'',u.citta||'',u.registeredAt?new Date(u.registeredAt).toLocaleDateString('it-IT'):'',u.isAdmin?'SI':'NO'];});
+  var ws=XLSX.utils.aoa_to_sheet([hdr].concat(rows));ws['!cols']=[{wch:16},{wch:16},{wch:30},{wch:22},{wch:28},{wch:18},{wch:28},{wch:18},{wch:14},{wch:8}];
+  XLSX.utils.book_append_sheet(wb,ws,'Utenti');
+  XLSX.writeFile(wb,'Utenti_InventPro_'+new Date().toISOString().slice(0,10)+'.xlsx');
+  notify('File Excel esportato','ok',2500);
+}
+
+function renderAdmin(){
+  if(!currentUser||!currentUser.isAdmin)return go('dash');
+  var expBtn=document.createElement('button');expBtn.className='btn btn-sm';expBtn.style.cssText='background:#15803d;border-color:#15803d;color:#fff;font-size:12px';expBtn.innerHTML='&#128196; Esporta Excel';expBtn.onclick=exportUtentiExcel;
+  setTB('Utenti','Gestione utenti registrati',expBtn);
+  var users=ls(UK)||[],allA=ls(AK)||[],allP=ls(PK)||[],el=g('content');
+  var html='<div class="card"><div class="card-title">Utenti ('+users.length+')</div><table><thead><tr><th>Nome</th><th>Email</th><th>Ruolo</th><th>Tribunale</th><th>Proc.</th><th>Art.</th><th>Dal</th><th></th></tr></thead><tbody>';
+  users.forEach(function(u){
+    html+='<tr><td><strong>'+u.nome+' '+u.cognome+'</strong>'+(u.isAdmin?' <span class="badge b-blue">Admin</span>':'')+'</td>'
+      +'<td style="font-size:12px;color:var(--muted)">'+u.email+'</td><td>'+u.ruolo+'</td><td>'+(u.tribunale||'—')+'</td>'
+      +'<td style="font-family:\'DM Mono\',monospace;font-size:12px">'+allP.filter(function(p){return p.owner===u.id;}).length+'</td>'
+      +'<td style="font-family:\'DM Mono\',monospace;font-size:12px">'+allA.filter(function(a){return a.owner===u.id;}).length+'</td>'
+      +'<td style="font-size:11px;color:var(--muted)">'+(u.registeredAt?new Date(u.registeredAt).toLocaleDateString('it-IT'):'—')+'</td>'
+      +'<td>'+(u.isAdmin?'—':'<button class="btn btn-sm btn-danger" onclick="deleteUser(this)" data-uid="'+u.id+'">Rimuovi</button>')+'</td></tr>';
+  });
+  html+='</tbody></table></div>';
+  el.innerHTML=html;
+}
+function deleteUser(el){
+  var id=typeof el==='string'?el:(el.dataset&&el.dataset.uid);
+  customConfirm('Rimuovere questo utente?',function(){lss(UK,(ls(UK)||[]).filter(function(u){return u.id!==id;}));renderAdmin();});
+}
+
+// ── GEO AUTOCOMPLETE ──────────────────────────────────────────────────────────
+var _cTimer=null;
+function lookupComune(val,capId,provId,listId){
+  var list=g(listId);if(!list)return;
+  if(val.length<2){list.style.display='none';return;}
+  clearTimeout(_cTimer);
+  _cTimer=setTimeout(function(){
+    var q=val.toLowerCase();
+    var matches=[];
+    for(var cap in CAP_IT){var v=CAP_IT[cap].split('|');if(v[0].toLowerCase().startsWith(q))matches.push({cap:cap,nome:v[0],prov:v[1]});}
+    if(matches.length){
+      list.innerHTML=matches.slice(0,8).map(function(m){return'<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--bg)" onmousedown="selectComune(\''+m.nome+'\',\''+m.cap+'\',\''+m.prov+'\',\''+capId+'\',\''+provId+'\',\''+listId+'\')">'+m.nome+'<span style="margin-left:6px;font-size:11px;color:var(--muted)">'+m.prov+'</span></div>';}).join('');
+      list.style.display='block';
+    }else{
+      // Fallback: Photon
+      fetch('https://photon.komoot.io/api/?q='+encodeURIComponent(val)+'&limit=6&lang=it&bbox=6.6,35.4,18.8,47.2&layer=city&layer=locality')
+        .then(function(r){return r.json();})
+        .then(function(data){
+          var cities=(data.features||[]).filter(function(f){var p=f.properties||{};return p.country_code==='it'&&(p.osm_key==='place'||p.type==='city'||p.type==='town'||p.type==='village'||p.type==='locality');});
+          if(!cities.length){list.style.display='none';return;}
+          list.innerHTML=cities.slice(0,6).map(function(f){var p=f.properties||{};var nome=p.name||p.city||p.town||p.village||'';var prov=p.state||'';return'<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--bg)" onmousedown="selectComune(\''+nome+'\',\'\',\''+prov+'\',\''+capId+'\',\''+provId+'\',\''+listId+'\')">'+nome+'<span style="margin-left:6px;font-size:11px;color:var(--muted)">'+prov+'</span></div>';}).join('');
+          list.style.display='block';
+        }).catch(function(){list.style.display='none';});
+    }
+  },200);
+}
+function selectComune(nome,cap,prov,capId,provId,listId){
+  var comuneEl=listId?document.querySelector('[id$="'+listId.replace('-list','')+'"]'):null;
+  if(comuneEl)comuneEl.value=nome;
+  if(capId&&cap&&g(capId))g(capId).value=cap;
+  if(provId&&prov&&g(provId)){g(provId).value=prov.length>2?'':prov.toUpperCase();}
+  var list=g(listId);if(list)list.style.display='none';
+}
+function hideComuneSuggest(listId){setTimeout(function(){var l=g(listId);if(l)l.style.display='none';},200);}
+function lookupCAP(cap,comuneId,provId){
+  if(!CAP_IT[cap])return;
+  var v=CAP_IT[cap].split('|');
+  if(comuneId&&g(comuneId))g(comuneId).value=v[0];
+  if(provId&&g(provId))g(provId).value=v[1];
+}
+
+// ── CAP DATASET (compact) ─────────────────────────────────────────────────────
+const CAP_IT={"20065":"Inzago|MI","20100":"Milano|MI","20121":"Milano|MI","20122":"Milano|MI","20123":"Milano|MI","20124":"Milano|MI","20125":"Milano|MI","20126":"Milano|MI","20127":"Milano|MI","20128":"Milano|MI","20129":"Milano|MI","20130":"Milano|MI","20131":"Milano|MI","20132":"Milano|MI","20133":"Milano|MI","20134":"Milano|MI","20135":"Milano|MI","20136":"Milano|MI","20137":"Milano|MI","20138":"Milano|MI","20139":"Milano|MI","20140":"Milano|MI","20141":"Milano|MI","20142":"Milano|MI","20143":"Milano|MI","20144":"Milano|MI","20145":"Milano|MI","20146":"Milano|MI","20147":"Milano|MI","20148":"Milano|MI","20149":"Milano|MI","20151":"Milano|MI","20152":"Milano|MI","20153":"Milano|MI","20154":"Milano|MI","20155":"Milano|MI","20156":"Milano|MI","20157":"Milano|MI","20158":"Milano|MI","20159":"Milano|MI","20161":"Milano|MI","20162":"Milano|MI","20011":"Corbetta|MI","20013":"Magenta|MI","20014":"Nerviano|MI","20015":"Parabiago|MI","20017":"Rho|MI","20025":"Legnano|MI","20035":"Lissone|MB","20052":"Monza|MB","20053":"Muggio|MB","20059":"Vimercate|MB","20060":"Cassina de Pecchi|MI","20063":"Cernusco sul Naviglio|MI","20064":"Gorgonzola|MI","20066":"Melzo|MI","20068":"Peschiera Borromeo|MI","20069":"Vaprio d Adda|MI","20077":"Melegnano|MI","20081":"Abbiategrasso|MI","20089":"Rozzano|MI","20092":"Cinisello Balsamo|MI","20093":"Cologno Monzese|MI","20094":"Corsico|MI","20096":"Pioltello|MI","20097":"San Donato Milanese|MI","20098":"Sesto San Giovanni|MI","20900":"Monza|MB","23900":"Lecco|LC","23801":"Calolziocorte|LC","23807":"Merate|LC","23820":"Bellano|LC","23821":"Abbadia Lariana|LC","23822":"Ballabio|LC","23823":"Colico|LC","23824":"Dervio|LC","23826":"Mandello del Lario|LC","23829":"Varenna|LC","23840":"Oggiono|LC","23845":"Costa Masnaga|LC","23851":"Robbiate|LC","23860":"Casatenovo|LC","23864":"Malgrate|LC","23866":"Valmadrera|LC","23871":"Calco|LC","23875":"Osnago|LC","23883":"Olginate|LC","23884":"Calolziocorte|LC","23891":"Barzano|LC","23895":"Lomagna|LC","23899":"Pescate|LC","24100":"Bergamo|BG","24020":"Albino|BG","24022":"Alzano Lombardo|BG","24023":"Clusone|BG","24027":"Nembro|BG","24044":"Dalmine|BG","24045":"Fara Gera d Adda|BG","24058":"Romano di Lombardia|BG","24065":"Lovere|BG","24067":"Sarnico|BG","24069":"Trescore Balneario|BG","25100":"Brescia|BS","25015":"Desenzano del Garda|BS","25018":"Montichiari|BS","25019":"Sirmione|BS","25032":"Chiari|BS","25049":"Iseo|BS","25087":"Salo|BS","21100":"Varese|VA","21013":"Gallarate|VA","21016":"Luino|VA","21047":"Saronno|VA","21049":"Tradate|VA","21052":"Busto Arsizio|VA","22100":"Como|CO","22063":"Cantu|CO","22066":"Mariano Comense|CO","22077":"Olgiate Comasco|CO","27100":"Pavia|PV","27058":"Voghera|PV","27029":"Vigevano|PV","26100":"Cremona|CR","26841":"Casalpusterlengo|LO","26900":"Lodi|LO","10100":"Torino|TO","10122":"Torino|TO","10123":"Torino|TO","10124":"Torino|TO","10125":"Torino|TO","10126":"Torino|TO","10127":"Torino|TO","10128":"Torino|TO","10129":"Torino|TO","10130":"Torino|TO","10131":"Torino|TO","10132":"Torino|TO","10133":"Torino|TO","10134":"Torino|TO","10135":"Torino|TO","10136":"Torino|TO","10137":"Torino|TO","10138":"Torino|TO","10139":"Torino|TO","10140":"Torino|TO","10141":"Torino|TO","10142":"Torino|TO","10143":"Torino|TO","10144":"Torino|TO","10145":"Torino|TO","10146":"Torino|TO","10147":"Torino|TO","10148":"Torino|TO","10149":"Torino|TO","10023":"Chieri|TO","10024":"Moncalieri|TO","10033":"Chivasso|TO","10036":"Settimo Torinese|TO","10040":"Rivoli|TO","10042":"Nichelino|TO","10043":"Orbassano|TO","10045":"Collegno|TO","10058":"Susa|TO","10059":"Venaria Reale|TO","10064":"Pinerolo|TO","10073":"Cirie|TO","10091":"Alpignano|TO","10092":"Beinasco|TO","10094":"Grugliasco|TO","11100":"Aosta|AO","13100":"Vercelli|VC","14100":"Asti|AT","15100":"Alessandria|AL","15057":"Tortona|AL","15048":"Valenza|AL","15033":"Casale Monferrato|AL","12100":"Cuneo|CN","12045":"Fossano|CN","12038":"Saluzzo|CN","12051":"Alba|CN","28100":"Novara|NO","28021":"Borgomanero|NO","28023":"Verbania|VB","28100":"Novara|NO","00100":"Roma|RM","00118":"Roma|RM","00119":"Roma|RM","00120":"Roma|RM","00121":"Roma|RM","00122":"Roma|RM","00123":"Roma|RM","00124":"Roma|RM","00125":"Roma|RM","00126":"Roma|RM","00127":"Roma|RM","00128":"Roma|RM","00129":"Roma|RM","00130":"Roma|RM","00131":"Roma|RM","00132":"Roma|RM","00133":"Roma|RM","00134":"Roma|RM","00135":"Roma|RM","00136":"Roma|RM","00137":"Roma|RM","00138":"Roma|RM","00139":"Roma|RM","00141":"Roma|RM","00142":"Roma|RM","00143":"Roma|RM","00144":"Roma|RM","00145":"Roma|RM","00146":"Roma|RM","00147":"Roma|RM","00148":"Roma|RM","00149":"Roma|RM","00151":"Roma|RM","00152":"Roma|RM","00153":"Roma|RM","00154":"Roma|RM","00155":"Roma|RM","00156":"Roma|RM","00157":"Roma|RM","00158":"Roma|RM","00159":"Roma|RM","00161":"Roma|RM","00162":"Roma|RM","00163":"Roma|RM","00164":"Roma|RM","00165":"Roma|RM","00166":"Roma|RM","00167":"Roma|RM","00168":"Roma|RM","00169":"Roma|RM","00171":"Roma|RM","00172":"Roma|RM","00173":"Roma|RM","00174":"Roma|RM","00175":"Roma|RM","00176":"Roma|RM","00177":"Roma|RM","00178":"Roma|RM","00179":"Roma|RM","00181":"Roma|RM","00182":"Roma|RM","00183":"Roma|RM","00184":"Roma|RM","00185":"Roma|RM","00186":"Roma|RM","00187":"Roma|RM","00188":"Roma|RM","00189":"Roma|RM","00191":"Roma|RM","00192":"Roma|RM","00193":"Roma|RM","00194":"Roma|RM","00195":"Roma|RM","00196":"Roma|RM","00197":"Roma|RM","00198":"Roma|RM","00199":"Roma|RM","00040":"Ardea|RM","00041":"Albano Laziale|RM","00042":"Anzio|RM","00043":"Ciampino|RM","00044":"Frascati|RM","00045":"Genzano di Roma|RM","00046":"Grottaferrata|RM","00047":"Marino|RM","00049":"Velletri|RM","00050":"Fiumicino|RM","00053":"Civitavecchia|RM","00055":"Ladispoli|RM","00062":"Bracciano|RM","80100":"Napoli|NA","80011":"Acerra|NA","80014":"Giugliano in Campania|NA","80021":"Afragola|NA","80022":"Arzano|NA","80035":"Nola|NA","80045":"Pompei|NA","80055":"Portici|NA","80056":"Ercolano|NA","80058":"Torre Annunziata|NA","80059":"Torre del Greco|NA","80066":"Sorrento|NA","80073":"Capri|NA","80078":"Pozzuoli|NA","50100":"Firenze|FI","50019":"Sesto Fiorentino|FI","50023":"Impruneta|FI","50044":"Empoli|FI","51100":"Pistoia|PT","56100":"Pisa|PI","57100":"Livorno|LI","53100":"Siena|SI","52100":"Arezzo|AR","55100":"Lucca|LU","58100":"Grosseto|GR","40100":"Bologna|BO","40026":"Imola|BO","40013":"Casalecchio di Reno|BO","40068":"San Lazzaro di Savena|BO","44100":"Ferrara|FE","47100":"Forli|FC","48100":"Ravenna|RA","41100":"Modena|MO","42100":"Reggio Emilia|RE","43100":"Parma|PR","29100":"Piacenza|PC","47900":"Rimini|RN","16100":"Genova|GE","16026":"Chiavari|GE","16029":"Rapallo|GE","16033":"Sestri Levante|GE","17100":"Savona|SV","18100":"Imperia|IM","19100":"La Spezia|SP","30100":"Venezia|VE","30015":"Chioggia|VE","30016":"Jesolo|VE","30026":"Portogruaro|VE","31100":"Treviso|TV","31015":"Conegliano|TV","31044":"Montebelluna|TV","35100":"Padova|PD","35013":"Cittadella|PD","35031":"Abano Terme|PD","35043":"Monselice|PD","36100":"Vicenza|VI","36061":"Bassano del Grappa|VI","37100":"Verona|VR","37012":"Bussolengo|VR","37019":"Peschiera del Garda|VR","37045":"Legnago|VR","38100":"Trento|TN","38122":"Trento|TN","32100":"Belluno|BL","33100":"Udine|UD","33170":"Pordenone|PN","34100":"Trieste|TS","34074":"Monfalcone|GO","34170":"Gorizia|GO","39100":"Bolzano|BZ","70100":"Bari|BA","70124":"Bari|BA","70125":"Bari|BA","70126":"Bari|BA","72100":"Brindisi|BR","73100":"Lecce|LE","74100":"Taranto|TA","71100":"Foggia|FG","76100":"Barletta|BT","65100":"Pescara|PE","66100":"Chieti|CH","67100":"L Aquila|AQ","64100":"Teramo|TE","86100":"Campobasso|CB","85100":"Potenza|PZ","88100":"Catanzaro|CZ","89100":"Reggio Calabria|RC","87100":"Cosenza|CS","88900":"Crotone|KR","89900":"Vibo Valentia|VV","90100":"Palermo|PA","95100":"Catania|CT","96100":"Siracusa|SR","91100":"Trapani|TP","92100":"Agrigento|AG","93100":"Caltanissetta|CL","94100":"Enna|EN","98100":"Messina|ME","97100":"Ragusa|RG","07100":"Sassari|SS","08100":"Nuoro|NU","09100":"Cagliari|CA","09016":"Iglesias|CA","07026":"Olbia|OT","06100":"Perugia|PG","06049":"Spoleto|PG","05100":"Terni|TR","02100":"Rieti|RI","01100":"Viterbo|VT","03100":"Frosinone|FR","04100":"Latina|LT","81100":"Caserta|CE","82100":"Benevento|BN","83100":"Avellino|AV","84100":"Salerno|SA","84087":"Sorrento|SA","62100":"Macerata|MC","60100":"Ancona|AN","61100":"Pesaro|PU","63100":"Ascoli Piceno|AP","61122":"Pesaro|PU","60019":"Senigallia|AN"};
+
+// ── AUTO-LOGIN (must be last) ─────────────────────────────────────────────────
+(function(){
+  var id=ls(CK);
+  if(id&&ls('ip_dver')===DATA_VER){
+    var u=(ls(UK)||[]).find(function(x){return x.id===id;});
+    if(u)startApp(u);
+  }
+})();
+</script>
+</body>
+</html>
