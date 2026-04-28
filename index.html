@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0049)file:///C:/Users/User/Downloads/InventPro_68.html -->
+<!-- saved from url=(0049)file:///C:/Users/User/Downloads/InventPro_69.html -->
 <html lang="it"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -8437,7 +8437,7 @@ function renderAvvisoWiz() {
   html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:10px">';
   html += '<div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Data presentaz. offerte</label><input type="date" id="av-termineOfferteData" class="form-control" value="'+escHtml(av.termineOfferteData||'')+'" style="font-size:13px"></div>';
   html += '<div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Ora presentaz. offerte</label><input type="time" id="av-termineOfferteOra" class="form-control" value="'+escHtml(av.termineOfferteOra||'12:00')+'" style="font-size:13px"></div>';
-  html += fldNum('Termine saldo prezzo (gg)','av-termineSaldo', av.termineSaldo||'120');
+  html += fldNum('Termine saldo prezzo (gg)','av-termineSaldo', av.termineSaldo||'120', {intero:true});
   html += '</div>';
   html += '<div style="font-size:11px;color:var(--muted);margin-top:8px">I valori vengono precompilati nei singoli lotti; puoi sovrascriverli lotto per lotto nella sezione seguente.</div>';
   html += '</div>';
@@ -8495,13 +8495,13 @@ function renderAvvisoWiz() {
   html += '<h3 style="margin:0 0 16px;font-size:15px;font-weight:700">4. Dati aggiuntivi</h3>';
   html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">';
   html += fldTxt('Data autorizzazione GD','av-dataAutGD', av.dataAutGD||'');
-  html += fldNum('Durata rilancio (minuti)','av-durataRilancio', av.durataRilancio||'1');
+  html += fldNum('Durata rilancio (minuti)','av-durataRilancio', av.durataRilancio||'1', {intero:true});
   html += '</div>';
   // Sezione trasferimento (solo immobili)
   html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">';
   html += fldTxt('Notaio','av-notaio', av.notaio||'');
   html += fldTxt('Studio notaio (Comune)','av-studioNotaio', av.studioNotaio||'');
-  html += fldNum('Termine atto notarile (gg)','av-termineAtto', av.termineAtto||'60');
+  html += fldNum('Termine atto notarile (gg)','av-termineAtto', av.termineAtto||'60', {intero:true});
   html += '</div>';
   html += '<div style="margin-bottom:12px;width:100%"><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Intestazione assegno cauzione / Liquidazione Giudiziale *</label>';
   html += '<input type="text" id="av-intestazioneAss" class="form-control" value="'+escHtml(av.intestazioneAss||proc.nome||'')+'" placeholder="es. Liquidazione Giudiziale \'NomeAzienda\'" style="width:100%;box-sizing:border-box"></div>';
@@ -8510,8 +8510,9 @@ function renderAvvisoWiz() {
   html += fldTxt('IBAN','av-iban', av.iban||'');
   html += fldTxt('Banca','av-banca', av.banca||'');
   html += '</div>';
-  html += '<div style="margin-bottom:12px;width:100%">';
-  html += fldTxt('Intestazione c/c della procedura','av-intestazCC', av.intestazCC||proc.nome||'');
+  html += '<div style="margin-bottom:12px">';
+  html += '<label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Intestazione c/c della procedura</label>';
+  html += '<input type="text" id="av-intestazCC" class="form-control" value="'+escHtml(av.intestazCC||proc.nome||'')+'" style="width:100%;box-sizing:border-box">';
   html += '</div>';
   html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:8px">';
   html += fldTxt('Comune (per firma avviso)','av-comuneFirma', av.comuneFirma||proc.tribunale||'');
@@ -8632,12 +8633,17 @@ function fldTxt(label, id, val) {
   return '<div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">'+label+'</label>'
     +'<input type="text" id="'+id+'" class="form-control" value="'+escHtml(val)+'"></div>';
 }
-function fldNum(label, id, val) {
-  // Formatta il valore in italiano se è un numero
+function fmtInt(n) {
+  // Formato intero italiano (no decimali)
+  var v = Math.round(parseFloat(n)||0);
+  return v.toLocaleString('it-IT');
+}
+function fldNum(label, id, val, opts) {
+  opts = opts||{};
   var displayVal = val;
   if(val!==''&&val!==null&&val!==undefined) {
     var n = parseItNum(String(val));
-    if(!isNaN(n)) displayVal = fmtNumPlain(n);
+    if(!isNaN(n)) displayVal = opts.intero ? fmtInt(n) : fmtNumPlain(n);
   }
   return '<div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">'+label+'</label>'
     +'<input type="text" inputmode="decimal" id="'+id+'" class="form-control" value="'+escHtml(displayVal)+'"></div>';
