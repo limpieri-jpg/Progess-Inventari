@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0049)file:///C:/Users/User/Downloads/InventPro_61.html -->
+<!-- saved from url=(0049)file:///C:/Users/User/Downloads/InventPro_62.html -->
 <html lang="it"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -8383,15 +8383,14 @@ function renderAvvisoWiz() {
   html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px">';
   html += fldNum('Cauzione (%) *','av-cauz-default', av.cauzDefault||'10');
   html += fldNum('Rilanci minimi (€) *','av-rilanci-default', av.rilanciDefault||'');
-  html += '<div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Diritti d’asta *</label>'+'<select id="av-diritti-tipo" class="form-control" onchange="toggleDirittiTipo()">'+'<option value="fisso"'+((!av.dirittiTipo||av.dirittiTipo==='fisso')?' selected':'')+'>% fissa</option>'+'<option value="fasce"'+(av.dirittiTipo==='fasce'?' selected':'')+'>Per fasce di prezzo</option>'+'</select></div>';  html += '</div>';  // Campo % fissa  html += '<div id="av-diritti-fisso-block" style="margin-top:8px;'+(av.dirittiTipo==='fasce'?'display:none':'')+'">'+'<label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Percentuale fissa (%)</label>'+'<input type="number" id="av-diritti-default" class="form-control" value="'+(av.dirittiDefault||'2')+'" min="0" step="0.1" style="max-width:180px"></div>';  // Fasce di prezzo  html += '<div id="av-diritti-fasce-block" style="margin-top:8px;'+(av.dirittiTipo!=='fasce'?'display:none':'')+'">';  html += '<div style="font-size:11px;color:var(--muted);margin-bottom:6px">Definisci le fasce: fino a € (vuoto=illimitato), diritti %</div>';  var fasce = av.dirittiTipo==='fasce'&&av.dirittiDefault ? JSON.parse(av.dirittiDefault||'[]') : [{fino:'',perc:''}];  if(!Array.isArray(fasce)) fasce=[{fino:'',perc:''}];  html += '<div id="av-fasce-container">';  fasce.forEach(function(fa, fi) {    html += '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:6px" id="av-fascia-'+fi+'">';    html += '<div><label style="font-size:11px;color:var(--muted)">Fino a (€)</label><input type="number" class="form-control av-fascia-fino" value="'+(fa.fino||'')+'" placeholder="es. 50000" min="0"></div>';    html += '<div><label style="font-size:11px;color:var(--muted)">Diritti (%)</label><input type="number" class="form-control av-fascia-perc" value="'+(fa.perc||'')+'" placeholder="es. 3" min="0" step="0.1"></div>';    html += '<div style="display:flex;align-items:flex-end"><button type="button" class="btn" onclick="removeFascia('+fi+')" style="padding:0 8px;height:36px;background:#fee2e2;color:#dc2626;border:none">✕</button></div>';    html += '</div>';  });  html += '</div>';  html += '<button type="button" class="btn" onclick="addFascia()" style="font-size:12px;margin-top:4px">+ Aggiungi fascia</button>';  html += '</div>';  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">';
-  html += fldTxt('Termine presentaz. offerte','av-termineOfferte', av.termineOfferte||'');
-  html += fldNum('Termine saldo prezzo (gg)','av-termineSaldo', av.termineSaldo||'120');
+  html += '<div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Diritti d’asta *</label>'+'<select id="av-diritti-tipo" class="form-control" onchange="toggleDirittiTipo()">'+'<option value="fisso"'+((!av.dirittiTipo||av.dirittiTipo==='fisso')?' selected':'')+'>% fissa</option>'+'<option value="fasce"'+(av.dirittiTipo==='fasce'?' selected':'')+'>Per fasce di prezzo</option>'+'</select></div>';  html += '</div>';  // Campo % fissa  html += '<div id="av-diritti-fisso-block" style="margin-top:8px;'+(av.dirittiTipo==='fasce'?'display:none':'')+'">'+'<label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Percentuale fissa (%)</label>'+'<input type="number" id="av-diritti-default" class="form-control" value="'+(av.dirittiDefault||'2')+'" min="0" step="0.1" style="max-width:180px"></div>';  // Fasce di prezzo  html += '<div id="av-diritti-fasce-block" style="margin-top:8px;'+(av.dirittiTipo!=='fasce'?'display:none':'')+'">';  html += '<div style="font-size:11px;color:var(--muted);margin-bottom:6px">Definisci le fasce: fino a € (vuoto=illimitato), diritti %</div>';  var fasce = av.dirittiTipo==='fasce'&&av.dirittiDefault ? JSON.parse(av.dirittiDefault||'[]') : [{fino:'',perc:''}];  if(!Array.isArray(fasce)) fasce=[{fino:'',perc:''}];  html += '<div id="av-fasce-container">';  fasce.forEach(function(fa, fi) {    html += '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:6px" id="av-fascia-'+fi+'">';    html += '<div><label style="font-size:11px;color:var(--muted)">Fino a (€)</label><input type="number" class="form-control av-fascia-fino" value="'+(fa.fino||'')+'" placeholder="es. 50000" min="0"></div>';    html += '<div><label style="font-size:11px;color:var(--muted)">Diritti (%)</label><input type="number" class="form-control av-fascia-perc" value="'+(fa.perc||'')+'" placeholder="es. 3" min="0" step="0.1"></div>';    html += '<div style="display:flex;align-items:flex-end"><button type="button" class="btn" onclick="removeFascia('+fi+')" style="padding:0 8px;height:36px;background:#fee2e2;color:#dc2626;border:none">✕</button></div>';    html += '</div>';  });  html += '</div>';  html += '<button type="button" class="btn" onclick="addFascia()" style="font-size:12px;margin-top:4px">+ Aggiungi fascia</button>';  html += '</div>';  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:8px">';
+  html += '<div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Termine presentaz. offerte — Data</label><input type="date" id="av-termineOfferteData" class="form-control" value="'+escHtml(av.termineOfferteData||'')+'" style="font-size:13px"></div>';  html += '<div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Termine presentaz. offerte — Ora</label><input type="time" id="av-termineOfferteOra" class="form-control" value="'+escHtml(av.termineOfferteOra||'12:00')+'" style="font-size:13px"></div>';  html += fldNum('Termine saldo prezzo (gg)','av-termineSaldo', av.termineSaldo||'120');
   html += '</div>';
   html += '<div style="font-size:11px;color:var(--muted);margin-top:8px">I valori vengono precompilati nei singoli lotti; puoi sovrascriverli lotto per lotto nella sezione seguente.</div>';
   html += '</div>';
 
   // Sezione 2 — Selezione lotti
-  html += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:16px">';
+  html += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:16px;max-width:760px;margin-left:auto;margin-right:auto">';
   html += '<h3 style="margin:0 0 16px;font-size:15px;font-weight:700">3. Lotti da includere nell\'avviso</h3>';
   if(lotti.length===0) {
     html += '<div style="color:var(--muted);font-size:13px">Nessun lotto disponibile. <a href="javascript:go(\'lotti\')" style="color:var(--brand)">Crea i lotti prima.</a></div>';
@@ -8400,10 +8399,14 @@ function renderAvvisoWiz() {
       var beniL = (l.beniIds||[]).map(function(id){ return arts.find(function(a){ return a.id===id; }); }).filter(Boolean);
       var totVG = beniL.reduce(function(s,a){ return s+(parseFloat(a.valGiud||0)*parseFloat(a.qta||1)); },0);
       var checked = (av.lottiIds||[]).indexOf(l.id)>=0;
-      html += '<div style="display:flex;align-items:flex-start;gap:10px;padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;cursor:pointer;background:'+(checked?'#f0f9ff':'var(--bg)')+'" id="lav-row-'+l.id+'" onclick="toggleLottoAvClick(\''+l.id+'\')">';
+      html += '<div style="border:1px solid var(--border);border-radius:8px;margin-bottom:8px;background:'+(checked?'#f0f9ff':'var(--bg)')+'" id="lav-row-'+l.id+'">';
+      // Header cliccabile (solo checkbox + titolo)
+      html += '<div style="display:flex;align-items:flex-start;gap:10px;padding:10px;cursor:pointer" onclick="toggleLottoAvClick(\''+l.id+'\')">';
       html += '<input type="checkbox" id="lav-'+l.id+'" '+(checked?'checked':'')+' onclick="event.stopPropagation();toggleLottoAv(\''+l.id+'\')" style="margin-top:2px;flex-shrink:0">';
-      html += '<div style="flex:1"><div style="font-size:13px;font-weight:600">Lotto '+l.numero+' — '+escHtml(l.nome||'')+'</div>';
+      html += '<div><div style="font-size:13px;font-weight:600">Lotto '+l.numero+' — '+escHtml(l.nome||'')+'</div>';
       html += '<div style="font-size:11px;color:var(--muted)">'+beniL.length+' beni • Val. giud.: '+fmtEur(totVG)+'</div>';
+      html += '</div></div>';
+      html += '<div style="flex:1;padding:0 10px 10px">';
       // Campi specifici per lotto
       html += '<div id="lav-extra-'+l.id+'" style="'+(checked?'':'display:none')+';margin-top:10px">';
       html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">';
@@ -8422,13 +8425,13 @@ function renderAvvisoWiz() {
       html += '<div style="margin-top:8px;width:100%"><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:2px">Descrizione lotto (precompilata da inventario)</label>';
       html += '<textarea id="lav-desc-'+l.id+'" class="form-control" rows="4" style="font-size:12px;width:100%;box-sizing:border-box;resize:vertical">'+(av['desc_'+l.id]||buildDescrizioneLotto(l, beniL))+'</textarea></div>';
       html += '</div>';
-      html += '</div></label>';
+      html += '</div>';
     });
   }
   html += '</div>';
 
   // Sezione 3 — Dati aggiuntivi
-  html += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:16px">';
+  html += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:16px;max-width:760px;margin-left:auto;margin-right:auto">';
   html += '<h3 style="margin:0 0 16px;font-size:15px;font-weight:700">4. Dati aggiuntivi</h3>';
   html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">';
   html += fldTxt('Data autorizzazione GD','av-dataAutGD', av.dataAutGD||'');
@@ -8449,13 +8452,27 @@ function renderAvvisoWiz() {
   html += '</div>';
 
   // Bottoni salva/genera
-  html += '<div style="display:flex;gap:10px;justify-content:flex-end;margin-bottom:40px">';
+  html += '<div style="display:flex;gap:10px;justify-content:flex-end;margin-bottom:40px;max-width:760px;margin-left:auto;margin-right:auto">';
   html += '<button class="btn" onclick="go(\'aste\')">Annulla</button>';
   html += '<button class="btn btn-primary" onclick="salvaAvviso()">💾 Salva bozza</button>';
   html += '<button class="btn btn-primary" onclick="salvaEGeneraAvviso()" style="background:#16a34a">📄 Salva e genera .docx</button>';
   html += '</div>';
   html += '</div>';
   el.innerHTML = html;
+
+  // Listener diritti tipo (già reso condizionale nell'HTML, ma per sicurezza)
+  var selDirTipo = document.getElementById('av-diritti-tipo');
+  if(selDirTipo) {
+    selDirTipo.addEventListener('change', toggleDirittiTipo);
+    // applica subito lo stato salvato
+    toggleDirittiTipo();
+  }
+
+  // Listener stima → ricalcolo base per tutti i lotti visibili
+  document.querySelectorAll('[id^="lav-stima-"]').forEach(function(el) {
+    var lid = el.id.replace('lav-stima-','');
+    el.addEventListener('input', function(){ calcBaseAbbattimento(lid); });
+  });
 
   // Listener cambio modalità
   var selModal = document.getElementById('av-modalita');
@@ -8592,7 +8609,8 @@ function collectAvviso() {
   av.rilanciDefault = vv('av-rilanci-default');
   av.dirittiTipo = vv('av-diritti-tipo')||'fisso';
   av.dirittiDefault = (av.dirittiTipo==='fasce') ? getFasceValue() : (vv('av-diritti-default')||'2');
-  av.termineOfferte = vv('av-termineOfferte');
+  av.termineOfferteData = vv('av-termineOfferteData');
+  av.termineOfferteOra  = vv('av-termineOfferteOra');
   av.dataAutGD = vv('av-dataAutGD');
   av.termineSaldo = vv('av-termineSaldo');
   av.durataRilancio = vv('av-durataRilancio');
