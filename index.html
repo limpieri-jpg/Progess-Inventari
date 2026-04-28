@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0049)file:///C:/Users/User/Downloads/InventPro_63.html -->
+<!-- saved from url=(0049)file:///C:/Users/User/Downloads/InventPro_64.html -->
 <html lang="it"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -8472,10 +8472,20 @@ function renderAvvisoWiz() {
       html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">';
       html += fldNum('Cauzione (%)','lav-cauz-'+l.id, av['cauz_'+l.id]||av.cauzDefault||'10');
       html += fldNum('Rilanci minimi (€)','lav-rilanci-'+l.id, av['rilanci_'+l.id]||av.rilanciDefault||'');
-      html += fldNum('Diritti d\'asta (%)','lav-diritti-'+l.id, av['diritti_'+l.id]||av.dirittiDefault||'2');
-      html += '</div>';
-      html += '<div style="margin-top:8px;width:100%"><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:2px">Descrizione lotto (precompilata da inventario)</label>';
-      html += '<textarea id="lav-desc-'+l.id+'" class="form-control" rows="4" style="font-size:12px;width:100%;box-sizing:border-box;resize:vertical">'+(av['desc_'+l.id]||buildDescrizioneLotto(l, beniL))+'</textarea></div>';
+      // Diritti d’asta: da tag 2
+      var _dTipo = av.dirittiTipo||'fisso';
+      if(_dTipo==='fasce') {
+        html += '<div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Diritti d’asta</label>'
+          +'<div style="padding:8px 10px;background:#f0f9ff;border:1px solid #bfdbfe;border-radius:6px;font-size:12px;color:#1e40af">'
+          +'Per fasce di prezzo (definite in Commissioni)'
+          +'</div>'
+          +'<input type="hidden" id="lav-diritti-'+l.id+'" value="fasce"></div>';
+      } else {
+        var _dVal = av['diritti_'+l.id]||av.dirittiDefault||'2';
+        html += '<div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Diritti d’asta (%)</label>'
+          +'<input type="number" id="lav-diritti-'+l.id+'" class="form-control" value="'+escHtml(_dVal)+'" min="0" step="0.1" readonly'
+          +' style="background:#f9fafb;color:var(--muted);cursor:default"></div>';
+      }
       html += '</div>';
       html += '</div>';
     });
