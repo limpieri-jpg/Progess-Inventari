@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0049)file:///C:/Users/User/Downloads/InventPro_60.html -->
+<!-- saved from url=(0049)file:///C:/Users/User/Downloads/InventPro_61.html -->
 <html lang="it"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -8383,9 +8383,7 @@ function renderAvvisoWiz() {
   html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px">';
   html += fldNum('Cauzione (%) *','av-cauz-default', av.cauzDefault||'10');
   html += fldNum('Rilanci minimi (€) *','av-rilanci-default', av.rilanciDefault||'');
-  html += fldNum('Diritti d\u2019asta (%) *','av-diritti-default', av.dirittiDefault||'2');
-  html += '</div>';
-  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">';
+  html += '<div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Diritti d’asta *</label>'+'<select id="av-diritti-tipo" class="form-control" onchange="toggleDirittiTipo()">'+'<option value="fisso"'+((!av.dirittiTipo||av.dirittiTipo==='fisso')?' selected':'')+'>% fissa</option>'+'<option value="fasce"'+(av.dirittiTipo==='fasce'?' selected':'')+'>Per fasce di prezzo</option>'+'</select></div>';  html += '</div>';  // Campo % fissa  html += '<div id="av-diritti-fisso-block" style="margin-top:8px;'+(av.dirittiTipo==='fasce'?'display:none':'')+'">'+'<label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Percentuale fissa (%)</label>'+'<input type="number" id="av-diritti-default" class="form-control" value="'+(av.dirittiDefault||'2')+'" min="0" step="0.1" style="max-width:180px"></div>';  // Fasce di prezzo  html += '<div id="av-diritti-fasce-block" style="margin-top:8px;'+(av.dirittiTipo!=='fasce'?'display:none':'')+'">';  html += '<div style="font-size:11px;color:var(--muted);margin-bottom:6px">Definisci le fasce: fino a € (vuoto=illimitato), diritti %</div>';  var fasce = av.dirittiTipo==='fasce'&&av.dirittiDefault ? JSON.parse(av.dirittiDefault||'[]') : [{fino:'',perc:''}];  if(!Array.isArray(fasce)) fasce=[{fino:'',perc:''}];  html += '<div id="av-fasce-container">';  fasce.forEach(function(fa, fi) {    html += '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:6px" id="av-fascia-'+fi+'">';    html += '<div><label style="font-size:11px;color:var(--muted)">Fino a (€)</label><input type="number" class="form-control av-fascia-fino" value="'+(fa.fino||'')+'" placeholder="es. 50000" min="0"></div>';    html += '<div><label style="font-size:11px;color:var(--muted)">Diritti (%)</label><input type="number" class="form-control av-fascia-perc" value="'+(fa.perc||'')+'" placeholder="es. 3" min="0" step="0.1"></div>';    html += '<div style="display:flex;align-items:flex-end"><button type="button" class="btn" onclick="removeFascia('+fi+')" style="padding:0 8px;height:36px;background:#fee2e2;color:#dc2626;border:none">✕</button></div>';    html += '</div>';  });  html += '</div>';  html += '<button type="button" class="btn" onclick="addFascia()" style="font-size:12px;margin-top:4px">+ Aggiungi fascia</button>';  html += '</div>';  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">';
   html += fldTxt('Termine presentaz. offerte','av-termineOfferte', av.termineOfferte||'');
   html += fldNum('Termine saldo prezzo (gg)','av-termineSaldo', av.termineSaldo||'120');
   html += '</div>';
@@ -8409,17 +8407,20 @@ function renderAvvisoWiz() {
       // Campi specifici per lotto
       html += '<div id="lav-extra-'+l.id+'" style="'+(checked?'':'display:none')+';margin-top:10px">';
       html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">';
-      html += fldNum('Valore di stima (€)','lav-stima-'+l.id, av['stima_'+l.id]||'');
-      html += fldNum('Prezzo base (€)','lav-base-'+l.id, av['base_'+l.id]||fmtNumPlain(totVG));
-      html += fldNum('Offerta minima (€)','lav-minima-'+l.id, av['minima_'+l.id]||'');
-      html += '</div>';
+      // Prima asta: stima = prezzo base (N. esp. = 1); successive: stima fissa + abbattimento
+      var nEsper = parseInt(document.getElementById('av-nesper')?document.getElementById('av-nesper').value:'1')||1;
+      var stimaSalvata = av['stima_'+l.id]||'';
+      var baseSalvata  = av['base_'+l.id]||fmtNumPlain(totVG);
+      var abbPerc      = av['abb_'+l.id]||'';
+      var minSalvata   = av['minima_'+l.id]||'';
+      html += fldNum('Valore di stima (€)','lav-stima-'+l.id, stimaSalvata);      html += '<div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">% Abbattimento</label>'+'<input type="number" id="lav-abb-'+l.id+'" class="form-control" value="'+escHtml(abbPerc)+'" min="0" max="100" step="1" placeholder="es. 25"'+' oninput="calcBaseAbbattimento(\''+l.id+'\')" style=""></div>';      html += fldNum('Prezzo base (€)','lav-base-'+l.id, baseSalvata);      html += fldNum('Offerta minima (€)','lav-minima-'+l.id, minSalvata);      html += '</div>';
       html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">';
       html += fldNum('Cauzione (%)','lav-cauz-'+l.id, av['cauz_'+l.id]||av.cauzDefault||'10');
       html += fldNum('Rilanci minimi (€)','lav-rilanci-'+l.id, av['rilanci_'+l.id]||av.rilanciDefault||'');
       html += fldNum('Diritti d\'asta (%)','lav-diritti-'+l.id, av['diritti_'+l.id]||av.dirittiDefault||'2');
       html += '</div>';
-      html += '<div style="margin-top:8px"><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:2px">Descrizione lotto (precompilata da inventario)</label>';
-      html += '<textarea id="lav-desc-'+l.id+'" class="form-control" rows="3" style="font-size:12px">'+(av['desc_'+l.id]||buildDescrizioneLotto(l, beniL))+'</textarea></div>';
+      html += '<div style="margin-top:8px;width:100%"><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:2px">Descrizione lotto (precompilata da inventario)</label>';
+      html += '<textarea id="lav-desc-'+l.id+'" class="form-control" rows="4" style="font-size:12px;width:100%;box-sizing:border-box;resize:vertical">'+(av['desc_'+l.id]||buildDescrizioneLotto(l, beniL))+'</textarea></div>';
       html += '</div>';
       html += '</div></label>';
     });
@@ -8439,8 +8440,8 @@ function renderAvvisoWiz() {
   html += fldTxt('Studio notaio (Comune)','av-studioNotaio', av.studioNotaio||'');
   html += fldNum('Termine atto notarile (gg)','av-termineAtto', av.termineAtto||'60');
   html += '</div>';
-  html += '<div style="margin-bottom:12px"><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Intestazione assegno cauzione / Liquidazione Giudiziale *</label>';
-  html += '<input type="text" id="av-intestazioneAss" class="form-control" value="'+escHtml(av.intestazioneAss||proc.nome||'')+'" placeholder="es. Liquidazione Giudiziale \'NomeAzienda\'"></div>';
+  html += '<div style="margin-bottom:12px;width:100%"><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Intestazione assegno cauzione / Liquidazione Giudiziale *</label>';
+  html += '<input type="text" id="av-intestazioneAss" class="form-control" value="'+escHtml(av.intestazioneAss||proc.nome||'')+'" placeholder="es. Liquidazione Giudiziale \'NomeAzienda\'" style="width:100%;box-sizing:border-box"></div>';
   html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">';
   html += fldTxt('Comune (per firma avviso)','av-comuneFirma', av.comuneFirma||proc.tribunale||'');
   html += fldTxt('Data avviso','av-dataAvviso', av.dataAvviso||(new Date().toLocaleDateString('it-IT')));
@@ -8468,6 +8469,64 @@ function renderAvvisoWiz() {
       fa.style.display='none'; fs.style.display='grid';
     }
   });
+}
+
+function toggleDirittiTipo() {
+  var tipo = vv('av-diritti-tipo');
+  var fb = document.getElementById('av-diritti-fisso-block');
+  var fcb = document.getElementById('av-diritti-fasce-block');
+  if(tipo==='fasce') {
+    if(fb) fb.style.display='none';
+    if(fcb) fcb.style.display='';
+  } else {
+    if(fb) fb.style.display='';
+    if(fcb) fcb.style.display='none';
+  }
+}
+
+function addFascia() {
+  var cont = document.getElementById('av-fasce-container');
+  if(!cont) return;
+  var idx = cont.children.length;
+  var div = document.createElement('div');
+  div.id = 'av-fascia-'+idx;
+  div.style.cssText = 'display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:6px';
+  div.innerHTML = '<div><label style="font-size:11px;color:var(--muted)">Fino a (€)</label><input type="number" class="form-control av-fascia-fino" placeholder="es. 50000" min="0"></div>'
+    +'<div><label style="font-size:11px;color:var(--muted)">Diritti (%)</label><input type="number" class="form-control av-fascia-perc" placeholder="es. 3" min="0" step="0.1"></div>'
+    +'<div style="display:flex;align-items:flex-end"><button type="button" class="btn" onclick="removeFascia('+idx+')" style="padding:0 8px;height:36px;background:#fee2e2;color:#dc2626;border:none">✕</button></div>';
+  cont.appendChild(div);
+}
+
+function removeFascia(idx) {
+  var cont = document.getElementById('av-fasce-container');
+  if(!cont || cont.children.length<=1) return;
+  var el = document.getElementById('av-fascia-'+idx);
+  if(el) el.remove();
+}
+
+function getFasceValue() {
+  var cont = document.getElementById('av-fasce-container');
+  if(!cont) return '[]';
+  var fasce = [];
+  Array.from(cont.querySelectorAll('[id^="av-fascia-"]')).forEach(function(row) {
+    var fino = (row.querySelector('.av-fascia-fino')||{}).value||'';
+    var perc = (row.querySelector('.av-fascia-perc')||{}).value||'';
+    fasce.push({fino:fino, perc:perc});
+  });
+  return JSON.stringify(fasce);
+}
+
+function calcBaseAbbattimento(lottoId) {
+  var stimaEl = document.getElementById('lav-stima-'+lottoId);
+  var abbEl   = document.getElementById('lav-abb-'+lottoId);
+  var baseEl  = document.getElementById('lav-base-'+lottoId);
+  if(!stimaEl||!abbEl||!baseEl) return;
+  var stima = parseFloat(stimaEl.value)||0;
+  var abb   = parseFloat(abbEl.value)||0;
+  if(stima>0 && abb>=0 && abb<=100) {
+    var base = stima * (1 - abb/100);
+    baseEl.value = Math.round(base);
+  }
 }
 
 function fldTxt(label, id, val) {
@@ -8531,7 +8590,8 @@ function collectAvviso() {
   av.oraClose = vv('av-oraClose');
   av.cauzDefault = vv('av-cauz-default');
   av.rilanciDefault = vv('av-rilanci-default');
-  av.dirittiDefault = vv('av-diritti-default');
+  av.dirittiTipo = vv('av-diritti-tipo')||'fisso';
+  av.dirittiDefault = (av.dirittiTipo==='fasce') ? getFasceValue() : (vv('av-diritti-default')||'2');
   av.termineOfferte = vv('av-termineOfferte');
   av.dataAutGD = vv('av-dataAutGD');
   av.termineSaldo = vv('av-termineSaldo');
@@ -8556,6 +8616,7 @@ function collectAvviso() {
       av['cauz_'+l.id] = vv('lav-cauz-'+l.id)||av.cauzDefault||'10';
       av['rilanci_'+l.id] = vv('lav-rilanci-'+l.id)||av.rilanciDefault||'';
       av['diritti_'+l.id] = vv('lav-diritti-'+l.id)||av.dirittiDefault||'2';
+      av['abb_'+l.id] = vv('lav-abb-'+l.id)||'';
       av['desc_'+l.id] = (document.getElementById('lav-desc-'+l.id)||{}).value||'';
     }
   });
