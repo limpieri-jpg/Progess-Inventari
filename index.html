@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0049)file:///C:/Users/User/Downloads/InventPro_67.html -->
+<!-- saved from url=(0049)file:///C:/Users/User/Downloads/InventPro_68.html -->
 <html lang="it"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -996,6 +996,12 @@ function getStorageUsage(){
   }catch(e){return 0;}
 }
 function g(id){return document.getElementById(id)}
+function parseItNum(s) {
+  // Converte formato italiano '1.234,56' in float
+  if(s===null||s===undefined||s==='') return 0;
+  var str = String(s).trim().replace(/\./g,'').replace(',','.');
+  return parseFloat(str)||0;
+}
 function vv(id){var e=g(id);return e?e.value.trim():''}
 function fmtEur(n){return '€'+parseFloat(n||0).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2})}
 function getSettings(){return ls(SK)||{ragSoc:'InventPro Srl',indirizzo:'',comune:'',cap:'',provincia:'',piva:'',logo:''}}
@@ -8500,10 +8506,12 @@ function renderAvvisoWiz() {
   html += '<div style="margin-bottom:12px;width:100%"><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Intestazione assegno cauzione / Liquidazione Giudiziale *</label>';
   html += '<input type="text" id="av-intestazioneAss" class="form-control" value="'+escHtml(av.intestazioneAss||proc.nome||'')+'" placeholder="es. Liquidazione Giudiziale \'NomeAzienda\'" style="width:100%;box-sizing:border-box"></div>';
   html += '<div style="font-size:13px;font-weight:600;color:var(--muted);margin:14px 0 8px;border-top:1px solid var(--border);padding-top:10px">Dati bancari della procedura</div>';
-  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px">';
   html += fldTxt('IBAN','av-iban', av.iban||'');
   html += fldTxt('Banca','av-banca', av.banca||'');
-  html += fldTxt('Intestazione c/c','av-intestazCC', av.intestazCC||proc.nome||'');
+  html += '</div>';
+  html += '<div style="margin-bottom:12px;width:100%">';
+  html += fldTxt('Intestazione c/c della procedura','av-intestazCC', av.intestazCC||proc.nome||'');
   html += '</div>';
   html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:8px">';
   html += fldTxt('Comune (per firma avviso)','av-comuneFirma', av.comuneFirma||proc.tribunale||'');
@@ -8612,11 +8620,11 @@ function calcBaseAbbattimento(lottoId) {
   var baseEl   = document.getElementById('lav-base-'+lottoId);
   var minimaEl = document.getElementById('lav-minima-'+lottoId);
   if(!stimaEl||!abbEl||!baseEl) return;
-  var stima = parseFloat(stimaEl.value)||0;
+  var stima = parseItNum(stimaEl.value)||0;
   var abb   = parseFloat(abbEl.value)||0;
   if(stima>0 && abb>=0 && abb<=100) {
-    baseEl.value = Math.round(stima);
-    if(minimaEl && abb>0) minimaEl.value = Math.round(stima*(1-abb/100)*100)/100;
+    baseEl.value = fmtNumPlain(stima);
+    if(minimaEl && abb>0) minimaEl.value = fmtNumPlain(stima*(1-abb/100));
   }
 }
 
@@ -8625,8 +8633,14 @@ function fldTxt(label, id, val) {
     +'<input type="text" id="'+id+'" class="form-control" value="'+escHtml(val)+'"></div>';
 }
 function fldNum(label, id, val) {
+  // Formatta il valore in italiano se è un numero
+  var displayVal = val;
+  if(val!==''&&val!==null&&val!==undefined) {
+    var n = parseItNum(String(val));
+    if(!isNaN(n)) displayVal = fmtNumPlain(n);
+  }
   return '<div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">'+label+'</label>'
-    +'<input type="number" id="'+id+'" class="form-control" value="'+escHtml(val)+'" min="0" step="any"></div>';
+    +'<input type="text" inputmode="decimal" id="'+id+'" class="form-control" value="'+escHtml(displayVal)+'"></div>';
 }
 function fmtNumPlain(n) {
   if(!n && n!==0) return '';
