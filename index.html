@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<!-- saved from url=(0049)file:///C:/Users/User/Downloads/InventPro_49.html -->
+<!-- saved from url=(0049)file:///C:/Users/User/Downloads/InventPro_50.html -->
 <html lang="it"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>InventPro – Inventari Concorsuali</title>
-<!-- Google Fonts rimosso per modalità offline -->
+
 <script src="file:///C:/Users/User/Downloads/InventPro%20%E2%80%93%20Inventari%20Concorsuali_files/qrcode.min.js.download"></script>
 <script src="file:///C:/Users/User/Downloads/InventPro%20%E2%80%93%20Inventari%20Concorsuali_files/jsQR.min.js.download"></script>
 
@@ -538,8 +538,8 @@ var docx=function(t){"use strict";var e=Object.defineProperty,n=Object.definePro
       <div class="inp-row"><label>Data apertura</label><input id="pm-data" type="date"></div>
       <div class="inp-row"><label>N. sentenza/decreto</label><input id="pm-sent-num" placeholder="ES: 12/2025"></div>
       <div class="inp-row"><label>Data sentenza/decreto</label><input id="pm-sent-data" type="date"></div>
-      <div class="inp-row"><label>CF procedura</label><input id="pm-cf" placeholder="Codice fiscale procedura" style="text-transform:uppercase"></div>
-      <div class="inp-row"><label>P.IVA procedura</label><input id="pm-piva" placeholder="Partita IVA procedura"></div>
+      <div class="inp-row"><label>CF procedura</label><input id="pm-cf" placeholder="Codice fiscale" style="text-transform:uppercase"></div>
+      <div class="inp-row"><label>P.IVA procedura</label><input id="pm-piva" placeholder="Partita IVA"></div>
       <div class="inp-row"><label>PEC procedura</label><input id="pm-pec" placeholder="pec@procedura.it"></div>
     </div>
     <!-- SEDI -->
@@ -966,7 +966,7 @@ function getSettings(){return ls(SK)||{ragSoc:'InventPro Srl',indirizzo:'',comun
     var users=ls(UK)||[];
     users=users.filter(function(u){return u.email&&u.pass;});
     if(!users.find(function(u){return u.email==='admin@inventpro.it';})){
-      users.unshift({id:'u0',nome:'Admin',cognome:'InventPro',email:'admin@inventpro.it',pass:'admin123',ruolo:'Amministratore',tribunale:'Tutti',tel:'',isAdmin:true,registeredAt:new Date().toISOString()});
+      users.unshift({id:'u0',nome:'Admin',cognome:'InventPro',email:'admin@inventpro.it',pass:'admin123',ruolo:'Amministratore',tribunale:'Tutti',tel:'',isAdmin:isAdminFlag,registeredAt:new Date().toISOString()});
     }else{
       users=users.map(function(u){return u.email==='admin@inventpro.it'?Object.assign({},u,{isAdmin:true}):u;});
     }
@@ -3144,11 +3144,23 @@ function openUserModal(uid){
       +'<div class="inp-row"><label>Telefono</label><input id="um-tel" value="'+escHtml(u&&u.tel||'')+'" placeholder="+39 ..."></div>'
     +'<div class="inp-row"><label>Codice Fiscale</label><input id="um-cf" value="'+escHtml(u&&u.cf||'')+'" placeholder="RSSMRA80A01H501Z" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"></div>'
     +'<div class="inp-row full"><label>PEC</label><input id="um-pec" type="email" value="'+escHtml(u&&u.pec||'')+'" placeholder="nome@pec.it"></div>'
-    +'<div class="inp-row full"><label>Email ordinaria</label><input id="um-email-ord" type="email" value="'+escHtml(u&&u.emailOrd||'')+'" placeholder="nome@email.it"></div>'
-    +'<div class="inp-row" style="flex:2"><label>Indirizzo residenza</label><input id="um-res-ind" value="'+escHtml(u&&u.resIndirizzo||'')+'" placeholder="Via Roma"></div>'
-    +'<div class="inp-row" style="flex:.6"><label>N. civico</label><input id="um-res-civ" value="'+escHtml(u&&u.resCivico||'')+'" placeholder="1"></div>'
-    +'<div class="inp-row" style="flex:.8"><label>CAP res.</label><input id="um-res-cap" value="'+escHtml(u&&u.resCap||'')+'" placeholder="20100" maxlength="5"></div>'
-    +'<div class="inp-row"><label>Città res.</label><input id="um-res-citta" value="'+escHtml(u&&u.resCitta||'')+'" placeholder="Milano"></div>'
+    +'<div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:6px;margin-top:10px">STUDIO PROFESSIONALE</div>'
+    +'<div class="fg" style="margin-bottom:8px">'
+      +'<div class="inp-row" style="flex:2"><label>Indirizzo studio</label><input id="um-stu-ind" value="'+escHtml(u&&u.stuIndirizzo||'')+'" placeholder="Via Roma"></div>'
+      +'<div class="inp-row" style="flex:.6"><label>N. civico</label><input id="um-stu-civ" value="'+escHtml(u&&u.stuCivico||'')+'" placeholder="1"></div>'
+      +'<div class="inp-row" style="flex:.8"><label>CAP</label><input id="um-stu-cap" value="'+escHtml(u&&u.stuCap||'')+'" placeholder="20100" maxlength="5"></div>'
+      +'<div class="inp-row"><label>Città</label><input id="um-stu-citta" value="'+escHtml(u&&u.stuCitta||'')+'" placeholder="Milano"></div>'
+      +'<div class="inp-row" style="flex:.5"><label>Provincia</label><input id="um-stu-prov" value="'+escHtml(u&&u.stuProvincia||'')+'" placeholder="LC" maxlength="2" style="text-transform:uppercase"></div>'
+    +'</div>'
+    +(currentUser.isAdmin
+      ?'<div class="inp-row"><label>Amministratore</label>'
+      +'<input id="um-admin-flag" type="checkbox" '+(u&&u.isAdmin ? 'checked ' : '')+'style="width:16px;height:16px;cursor:pointer;margin-right:6px"> '
+      +'<span style="font-size:12px;color:var(--muted)">Accesso completo</span></div>'
+    : '')
+    
+    
+    
+    
     +'<div class="inp-row" style="flex:2"><label>Indirizzo studio</label><input id="um-stu-ind" value="'+escHtml(u&&(u.stuIndirizzo||u.indirizzo)||'')+'" placeholder="Via Verdi"></div>'
     +'<div class="inp-row" style="flex:.6"><label>N. civico</label><input id="um-stu-civ" value="'+escHtml(u&&u.stuCivico||'')+'" placeholder="5"></div>'
     +'<div class="inp-row" style="flex:.8"><label>CAP studio</label><input id="um-stu-cap" value="'+escHtml(u&&u.stuCap||'')+'" placeholder="20100" maxlength="5"></div>'
@@ -3223,8 +3235,7 @@ function saveUserModal(uid){
     var newU={
       id:'u'+Date.now(),nome:nome,cognome:cogn,email:email,
       pass:pass,isAdmin:role==='admin',tel:tel,
-      cf:umv('um-cf').toUpperCase(),pec:umv('um-pec'),emailOrd:umv('um-email-ord'),
-      resIndirizzo:umv('um-res-ind'),resCivico:umv('um-res-civ'),resCap:umv('um-res-cap'),resCitta:umv('um-res-citta'),
+      cf:umv('um-cf').toUpperCase(),pec:umv('um-pec'),
       stuIndirizzo:umv('um-stu-ind'),stuCivico:umv('um-stu-civ'),stuCap:umv('um-stu-cap'),stuCitta:umv('um-stu-citta'),stuProvincia:(umv('um-stu-prov')||'').toUpperCase(),
       indirizzo:umv('um-stu-ind'),citta:umv('um-stu-citta'),
       tribunali:tribs,registeredAt:new Date().toISOString()
@@ -3243,9 +3254,9 @@ function saveUserModal(uid){
     users[idx].nome=nome;users[idx].cognome=cogn;users[idx].email=email;
     users[idx].cf=umv('um-cf').toUpperCase();
     users[idx].pec=umv('um-pec');
-    users[idx].emailOrd=umv('um-email-ord');
-    users[idx].resIndirizzo=umv('um-res-ind');users[idx].resCivico=umv('um-res-civ');
-    users[idx].resCap=umv('um-res-cap');users[idx].resCitta=umv('um-res-citta');
+    
+    users[idx].resCivico=umv('um-res-civ');
+    users[idx].resCap=umv('um-res-cap');
     users[idx].stuIndirizzo=umv('um-stu-ind');users[idx].stuCivico=umv('um-stu-civ');
     users[idx].stuCap=umv('um-stu-cap');users[idx].stuCitta=umv('um-stu-citta');
     users[idx].indirizzo=users[idx].stuIndirizzo;users[idx].citta=users[idx].stuCitta;
@@ -5167,9 +5178,7 @@ function esportaDocumentoOk(docId, formato) {
 function buildContestoProcedura(proc, doc) {
   proc = proc || currentProc || {};
   var _users = ls('ip_users') || [];
-  var u = (proc.curatoreUid && _users.find(function(x){ return x.id===proc.curatoreUid; })) ||
-          (proc.curatoreEmail && _users.find(function(x){ return (x.email||'').toLowerCase()===(proc.curatoreEmail||'').toLowerCase(); })) ||
-          currentUser || {};
+  var u = (proc.curatoreUid && _users.find(function(x){ return x.id===proc.curatoreUid; })) || (proc.curatoreEmail && _users.find(function(x){ return (x.email||'').toLowerCase()===(proc.curatoreEmail||'').toLowerCase(); })) || currentUser || {};
   var settings = getSettings() || {};
 
   // ── Dati procedura ────────────────────────────────────────────────────────
@@ -7481,7 +7490,7 @@ function _generaDocxMandato(tipo, procId) {
       tel: u.tel || '',
       email: proc.curatoreEmail || u.email || '',
       pec: proc.pec || u.pec || '',
-      cfpiva: proc.cf || (proc.piva ? 'CF: '+(proc.cf||'')+' - P.IVA: '+proc.piva : proc.cfpiva||''),
+      cfpiva: proc.cf || (proc.piva ? ' P.IVA '+proc.piva : proc.cfpiva||''),
       procCF: proc.cf || '',
       procPIVA: proc.piva || '',
       procPEC: proc.pec || '',
