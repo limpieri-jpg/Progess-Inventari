@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0049)file:///C:/Users/User/Downloads/InventPro_52.html -->
+<!-- saved from url=(0049)file:///C:/Users/User/Downloads/InventPro_56.html -->
 <html lang="it"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -505,7 +505,7 @@ var docx=function(exports){"use strict";var __defProp=Object.defineProperty,__de
   <!-- MAIN -->
   <div class="main">
     <!-- D-style secondary nav (populated by renderDNavbar) -->
-    <div class="d-navbar" id="d-navbar" style="display: flex;"><div class="d-nav-item on" onclick="go(&#39;dash&#39;)">Home</div><div class="d-nav-item" onclick="go(&#39;search&#39;)">Cerca procedura</div><div class="d-nav-item" onclick="go(&#39;admin&#39;)">Utenti</div></div>
+    <div class="d-navbar" id="d-navbar" style="display: flex;"><div class="d-nav-item" onclick="go(&#39;dash&#39;)">Home</div><div class="d-nav-item" onclick="go(&#39;search&#39;)">Cerca procedura</div><div class="d-nav-item on" onclick="go(&#39;admin&#39;)">Utenti</div></div>
     <div class="topbar">
       <!-- Logo Progess -->
       <div style="display:flex;align-items:center;gap:8px;cursor:pointer;flex-shrink:0" onclick="go(&#39;dash&#39;)">
@@ -516,12 +516,12 @@ var docx=function(exports){"use strict";var __defProp=Object.defineProperty,__de
       <button id="topbar-back" onclick="goBack()" style="display:none;align-items:center;gap:5px;background:none;border:1px solid var(--border);border-radius:var(--radius);padding:0 10px;height:30px;cursor:pointer;color:var(--muted);font-size:13px;flex-shrink:0;margin-left:8px;font-family:DM Sans,sans-serif">←</button>
       <!-- Title area -->
       <div class="tb-left" style="flex:1;min-width:0;padding:0 20px">
-        <div class="tb-title" id="tb-title"></div>
-        <div class="tb-sub" id="tb-sub"></div>
+        <div class="tb-title" id="tb-title">Gestione Utenti</div>
+        <div class="tb-sub" id="tb-sub">Amministrazione</div>
       </div>
       <!-- Actions: solo + Procedura (da setTB) + avatar utente -->
       <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-        <div id="tb-actions" style="display:flex;gap:6px;align-items:center"><button class="btn btn-primary" onclick="openProcModal()" style="height:38px;padding:0 18px;font-size:14px;font-weight:600">+ Procedura</button></div>
+        <div id="tb-actions" style="display:flex;gap:6px;align-items:center"></div>
         <!-- Tasto impostazioni (desktop only) -->
         <button id="topbar-settings" onclick="go(&#39;settings&#39;)" title="Impostazioni" style="display:flex;width:36px;height:36px;border-radius:50%;background:none;border:1px solid var(--border);cursor:pointer;font-size:16px;align-items:center;justify-content:center;color:var(--muted);flex-shrink:0">⚙</button>
         <!-- Avatar utente con dropdown -->
@@ -534,12 +534,12 @@ var docx=function(exports){"use strict";var __defProp=Object.defineProperty,__de
         </div>
       </div>
     </div>
-    <div class="content" id="content"><div class="stats"><div class="stat"><div class="stat-lbl">Procedure attive</div><div class="stat-val">2</div></div><div class="stat"><div class="stat-lbl">Procedure non attive</div><div class="stat-val" style="color:var(--muted)">0</div></div></div><div class="dash-tabs"><div class="dash-tab on" id="dtab-attive" onclick="switchDashTab(&#39;attive&#39;)">✅ Procedure attive <span class="tbadge">2</span></div><div class="dash-tab warn-tab" id="dtab-chiuse" onclick="switchDashTab(&#39;chiuse&#39;)">📌 Non attive <span class="tbadge">0</span></div></div><div id="dash-tab-content"><div style="overflow-x:auto"><table><thead><tr><th>Denominazione</th><th>Tipo</th><th>Tribunale</th><th>Giudice/Curatore</th><th>Art.</th><th>Stato</th><th></th></tr></thead><tbody><tr><td><strong>DNR Sicurezza Srl</strong><br><span style="font-size:11px;color:var(--muted)">2/2025</span></td><td><span class="badge b-blue">Liquidazione giudiziale</span></td><td>Lecco</td><td style="font-size:12px"><span style="color:var(--muted);font-size:11px">GD: </span>ES: Dott. Rossi<br><span style="color:var(--muted);font-size:11px">Cur: </span>ES: Avv. Verdi</td><td style="font-family:&#39;DM Mono&#39;,monospace;font-size:13px">2</td><td><span class="badge b-green">attiva</span></td><td><button class="btn btn-sm" onclick="selectProc(&quot;p1&quot;)">Apri →</button></td></tr><tr><td><strong>Prova Srl</strong><br><span style="font-size:11px;color:var(--muted)">1/2024</span></td><td><span class="badge b-blue">Liquidazione giudiziale</span></td><td>Tribunale di Lecco</td><td style="font-size:12px"><span style="color:var(--muted);font-size:11px">GD: </span>Dott. Dario Colasanti<br><span style="color:var(--muted);font-size:11px">Cur: </span>Avv. prova</td><td style="font-family:&#39;DM Mono&#39;,monospace;font-size:13px">0</td><td><span class="badge b-green">attiva</span></td><td><button class="btn btn-sm" onclick="selectProc(&quot;p1773827777239&quot;)">Apri →</button></td></tr></tbody></table></div></div></div>
+    <div class="content" id="content"><div class="card" style="margin-bottom:12px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div class="card-title" style="margin:0">👥 Utenti (2)</div><button class="btn btn-primary btn-sm" onclick="openUserModal(null)">+ Nuovo utente</button></div><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="border-bottom:2px solid var(--border)"><th style="text-align:left;padding:8px 6px">Nome</th><th style="text-align:left;padding:8px 6px">Email</th><th style="text-align:left;padding:8px 6px">Ruolo</th><th style="text-align:left;padding:8px 6px">Tribunali</th><th style="text-align:left;padding:8px 6px">Procedure</th><th style="text-align:left;padding:8px 6px">Azioni</th></tr></thead><tbody><tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 6px;font-weight:500">Admin InventPro</td><td style="padding:8px 6px;color:var(--muted)">admin@inventpro.it</td><td style="padding:8px 6px"><span style="padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;background:#fef3c7;color:#92400e;">Admin</span></td><td style="padding:8px 6px;font-size:12px;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</td><td style="padding:8px 6px;font-size:12px">0 proc.</td><td style="padding:8px 6px"><div style="display:flex;gap:6px;align-items:center"><button class="btn btn-sm" onclick="openUserModal(&#39;u0&#39;)" style="font-size:12px">✏️ Modifica</button></div></td></tr><tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 6px;font-weight:500">Luigi Impieri</td><td style="padding:8px 6px;color:var(--muted)">impieri18@gmail.com</td><td style="padding:8px 6px"><span style="padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;background:#dbeafe;color:#1e40af;">Utente</span></td><td style="padding:8px 6px;font-size:12px;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Lecco</td><td style="padding:8px 6px;font-size:12px">0 proc.</td><td style="padding:8px 6px"><div style="display:flex;gap:6px;align-items:center"><button class="btn btn-sm" onclick="openUserModal(&#39;u1773827715503&#39;)" style="font-size:12px">✏️ Modifica</button><button class="btn btn-sm" onclick="toggleUserActive(&#39;u1773827715503&#39;)" style="font-size:12px;background:#fffbeb;color:#92400e;border-color:#fde68a">⏸ Disattiva</button><span style="color:var(--border2)">|</span><button class="btn btn-sm btn-danger" onclick="deleteUser(&#39;u1773827715503&#39;)" style="font-size:12px">🗑 Elimina</button></div></td></tr></tbody></table></div></div></div>
   </div>
 </div>
 
 <!-- PROC MODAL -->
-<div id="proc-modal" class="modal-overlay open" onclick="if(event.target===this)closeModal()">
+<div id="proc-modal" class="modal-overlay" onclick="if(event.target===this)closeModal()">
   <div class="modal-box">
     <div class="modal-title" id="proc-modal-title">Nuova procedura</div>
     <div class="fg">
@@ -548,19 +548,33 @@ var docx=function(exports){"use strict";var __defProp=Object.defineProperty,__de
       <div class="inp-row"><label>N. procedura</label><div style="display:flex;gap:6px;align-items:center"><input id="pm-num" placeholder="ES: 2/2025" style="flex:1"><button class="btn btn-sm" type="button" onclick="fetchFromProcDB()" style="white-space:nowrap;height:40px">🔍 Portale</button></div></div>
       <div class="inp-row full"><label>Tribunale</label><input id="pm-trib" placeholder="ES: Tribunale di Lecco"></div>
       <div class="inp-row"><label>Giudice delegato</label><input id="pm-giudice" placeholder="ES: Dott. Rossi"></div>
+      <div class="inp-row"><label>Ruolo in procedura</label><select id="pm-ruolo"><option value="Curatore">Curatore</option><option value="Liquidatore Giudiziale">Liquidatore Giudiziale</option><option value="Commissario Giudiziale">Commissario Giudiziale</option><option value="Commissario Liquidatore">Commissario Liquidatore</option><option value="Gestore OCC">Gestore OCC</option></select></div>
       <div class="inp-row"><label>Curatore</label>
         <div style="position:relative">
           <input id="pm-curatore" placeholder="Cerca per nome..." autocomplete="off" oninput="filterCuratoriList(this.value)" onfocus="showCuratoriList()" style="width:100%">
-          <div id="pm-curatori-list" style="display: none; position: absolute; top: 100%; left: 0px; right: 0px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: rgba(0, 0, 0, 0.12) 0px 4px 16px; z-index: 999; max-height: 220px; overflow-y: auto;"><div style="padding: 12px 14px; font-size: 13px; color: var(--muted);">Nessun utente trovato — <a href="file:///C:/Users/User/Downloads/InventPro_52.html#" style="color:var(--primary)">Crea nuovo</a></div><div style="padding: 10px 14px; border-top: 1px solid var(--border2,#eee); font-size: 12px;"><a href="file:///C:/Users/User/Downloads/InventPro_52.html#" style="color:var(--primary);text-decoration:none">+ Crea nuovo curatore</a></div></div>
+          <div id="pm-curatori-list" style="display: none; position: absolute; top: 100%; left: 0px; right: 0px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: rgba(0, 0, 0, 0.12) 0px 4px 16px; z-index: 999; max-height: 220px; overflow-y: auto;"><div style="padding: 10px 14px; cursor: pointer; border-bottom: 1px solid var(--border2,#eee); font-size: 13px;"><div style="font-weight:600">Admin InventPro</div><div style="color:var(--muted);font-size:12px">Amministratore · admin@inventpro.it</div></div><div style="padding: 10px 14px; cursor: pointer; border-bottom: 1px solid var(--border2,#eee); font-size: 13px;"><div style="font-weight:600">Luigi Impieri</div><div style="color:var(--muted);font-size:12px">Liquidatore · impieri18@gmail.com</div></div><div style="padding: 10px 14px; border-top: 1px solid var(--border2,#eee); font-size: 12px;"><a href="file:///C:/Users/User/Downloads/InventPro_56.html#" style="color:var(--primary);text-decoration:none">+ Crea nuovo curatore</a></div></div>
         </div>
-        <div id="pm-cur-selected" style="display:none;margin-top:6px;padding:8px 12px;background:var(--bg);border-radius:8px;font-size:13px;align-items:center;justify-content:space-between">
-          <span id="pm-cur-selected-label" style="color:var(--text)"></span>
-          <button type="button" onclick="clearCuratoreSelection()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px">✕</button>
+        <div id="pm-cur-selected" style="display: none; margin-top: 6px;">
+          <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;margin-bottom:4px">
+            <span style="flex:1;font-weight:600;font-size:13px;color:var(--text)" id="pm-cur-selected-name">Luigi Impieri</span>
+            <button type="button" onclick="clearCuratoreSelection()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:18px;line-height:1;padding:0 2px" title="Rimuovi">✕</button>
+          </div>
+          <div id="pm-cur-selected-label" style="display:flex;flex-direction:column;gap:3px;padding:8px 12px;background:var(--surface,#f8f9fa);border:1px solid var(--border);border-radius:8px;font-size:12px">
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="color:var(--muted);min-width:38px">Ruolo</span>
+              <span style="font-weight:600;color:var(--text)" id="pm-cur-role-val">Commissario Liquidatore</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="color:var(--muted);min-width:38px">Email</span>
+              <span style="color:var(--text)" id="pm-cur-email-val">impieri18@gmail.com</span>
+            </div>
+          </div>
         </div>
+        <div id="pm-cur-email-display" style="display:none"></div>
         <button type="button" onclick="openNewCuratoreFromProc()" style="margin-top:6px;font-size:12px;color:var(--primary);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline">+ Crea nuovo curatore</button>
       </div>
-      <div class="inp-row"><label>Email curatore</label></div><input type="hidden" id="pm-cur-email"><input type="hidden" id="pm-cur-uid">
-      <div class="inp-row"><label>C.F. curatore</label><input id="pm-cur-cf" placeholder="RSSMRA80A01H501Z" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"></div>
+      <input type="hidden" id="pm-cur-email" value=""><input type="hidden" id="pm-cur-uid" value="">
+      
       <div class="inp-row"><label>Commissionario</label><input id="pm-comm" placeholder="ES: Commissario Srl"></div>
       <div class="inp-row"><label>Data apertura</label><input id="pm-data" type="date"></div>
       <div class="inp-row"><label>N. sentenza/decreto</label><input id="pm-sent-num" placeholder="ES: 12/2025"></div>
@@ -1123,6 +1137,7 @@ function startApp(u){
   _navHistory=[];
   idbInit();
   go('dash');
+  closeModal();
 }
 function toggleUserMenu(){
   var m=document.getElementById('user-menu');
@@ -1642,8 +1657,14 @@ function selectCuratore(nome, email, uid) {
   if (list) list.style.display = 'none';
   var users = getCuratoriUsers();
   var u = uid ? users.find(function(x){ return x.id === uid; }) : users.find(function(x){ return x.email === email; });
-  if (selLabel) selLabel.textContent = nome + (u && u.ruolo ? ' — ' + u.ruolo : '') + (email ? ' (' + email + ')' : '');
-  if (selDiv) selDiv.style.display = 'flex';
+  // Popola nome, ruolo, email separatamente
+  var nameEl = document.getElementById('pm-cur-selected-name');
+  var roleVal = document.getElementById('pm-cur-role-val');
+  var emailVal = document.getElementById('pm-cur-email-val');
+  if (nameEl) nameEl.textContent = nome;
+  if (roleVal){var _pr=document.getElementById('pm-ruolo');roleVal.textContent=(_pr&&_pr.value)||'';}
+  if (emailVal) emailVal.textContent = email || '';
+  if (selDiv) selDiv.style.display = 'block';
 }
 
 function clearCuratoreSelection() {
@@ -1682,8 +1703,14 @@ function initCuratoreBox(proc) {
              ((u.nome||'') + ' ' + (u.cognome||'')).trim() === proc.curatore ||
              (u.email||'').toLowerCase() === (proc.curatoreEmail||'').toLowerCase();
     });
-    if (selLabel) selLabel.textContent = proc.curatore + (match && match.ruolo ? ' — ' + match.ruolo : '') + (proc.curatoreEmail ? ' (' + proc.curatoreEmail + ')' : '');
-    if (selDiv) selDiv.style.display = 'flex';
+    var _nameEl = document.getElementById('pm-cur-selected-name');
+    var _roleVal = document.getElementById('pm-cur-role-val');
+    var _emailVal = document.getElementById('pm-cur-email-val');
+    var _email = match ? (match.email||'') : (proc.curatoreEmail||'');
+    if (_nameEl) _nameEl.textContent = proc.curatore;
+    if (_roleVal){var _pr2=document.getElementById('pm-ruolo');_roleVal.textContent=(_pr2&&_pr2.value)||'';}
+    if (_emailVal) _emailVal.textContent = _email;
+    if (selDiv) selDiv.style.display = 'block';
   } else {
     input.value = '';
     if (selDiv) selDiv.style.display = 'none';
@@ -1710,6 +1737,7 @@ function openProcModal(existingProc){
   g('pm-num').value=existingProc?existingProc.num:'';
   g('pm-trib').value=existingProc?existingProc.tribunale:'';
   g('pm-giudice').value=existingProc?existingProc.giudice:'';
+  var _pr=g('pm-ruolo');if(_pr)_pr.value=existingProc?(existingProc.ruoloCuratore||'Curatore'):'Curatore';
   initCuratoreBox(existingProc||null);
   g('pm-comm').value=existingProc?existingProc.commissionario:'';
   g('pm-data').value=existingProc?existingProc.data:'';
@@ -1776,7 +1804,7 @@ function saveProcedura(){
   var procs=ls(PK)||[];
   var editId=g('proc-save-btn').dataset.editId;
   var curEmail=(vv('pm-cur-email')||'').toLowerCase().trim();
-  var proc={id:editId||'p'+Date.now(),nome:nome,tipo:vv('pm-tipo'),num:vv('pm-num'),tribunale:vv('pm-trib'),giudice:vv('pm-giudice'),curatore:vv('pm-curatore'),curatoreEmail:curEmail,curatoreUid:(g('pm-cur-uid')||{}).value||'',commissionario:vv('pm-comm'),data:vv('pm-data'),sentenzaNum:vv('pm-sent-num'),sentenzaData:vv('pm-sent-data'),cf:(vv('pm-cf')||'').toUpperCase().trim(),piva:(vv('pm-piva')||'').trim(),pec:(vv('pm-pec')||'').toLowerCase().trim(),status:'attiva',owner:currentUser.id,sedi:tempSedi};
+  var proc={id:editId||'p'+Date.now(),nome:nome,tipo:vv('pm-tipo'),num:vv('pm-num'),tribunale:vv('pm-trib'),giudice:vv('pm-giudice'),curatore:vv('pm-curatore'),ruoloCuratore:vv('pm-ruolo'),curatoreEmail:curEmail,curatoreUid:(g('pm-cur-uid')||{}).value||'',commissionario:vv('pm-comm'),data:vv('pm-data'),sentenzaNum:vv('pm-sent-num'),sentenzaData:vv('pm-sent-data'),cf:(vv('pm-cf')||'').toUpperCase().trim(),piva:(vv('pm-piva')||'').trim(),pec:(vv('pm-pec')||'').toLowerCase().trim(),status:'attiva',owner:currentUser.id,sedi:tempSedi};
   // Auto-assign procedure to matching user by email
   if(curEmail){
     var users=ls(UK)||[];
@@ -3289,7 +3317,7 @@ function openUserModal(uid){
         +'<div class="inp-row"><label>Nuova password</label><input id="um-newpass" type="password" placeholder="Lascia vuoto per non cambiare"></div>'
         :'<div class="inp-row"><label>Reset password</label><input id="um-newpass" type="password" placeholder="Nuova password (vuoto=no cambio)"></div>'
       )
-      +'<div class="inp-row"><label>Ruolo</label><select id="um-role"><option value="Curatore">Curatore</option><option value="Liquidatore Giudiziale">Liquidatore Giudiziale</option><option value="Commissario">Commissario</option><option value="Cancelliere">Cancelliere</option></select></div>'
+      +'<div class="inp-row"><label>Titolo professionale</label><select id="um-titolo"><option value="">— nessuno —</option><option value="Dott.">Dott.</option><option value="Dott.ssa">Dott.ssa</option><option value="Avv.">Avv.</option><option value="Rag.">Rag.</option><option value="Ing.">Ing.</option><option value="Arch.">Arch.</option></select></div>'
       +'<div class="inp-row"><label>Telefono</label><input id="um-tel" value="'+escHtml(u&&u.tel||'')+'" placeholder="+39 ..."></div>'
     +'<div class="inp-row"><label>Codice Fiscale</label><input id="um-cf" value="'+escHtml(u&&u.cf||'')+'" placeholder="RSSMRA80A01H501Z" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"></div>'
     +'<div class="inp-row full"><label>PEC</label><input id="um-pec" type="email" value="'+escHtml(u&&u.pec||'')+'" placeholder="nome@pec.it"></div>'
@@ -3332,6 +3360,8 @@ function openUserModal(uid){
   +'</div>';
 
   document.body.appendChild(modal);
+  // Setta titolo utente nel select
+  setTimeout(function(){var _t=document.getElementById('um-titolo');if(_t)_t.value=u?(u.titolo||u.ruolo||''):'';},0);
 }
 
 function addTribToModal(){
@@ -3361,7 +3391,7 @@ function saveUserModal(uid){
   var nome=(document.getElementById('um-nome').value||'').trim();
   var cogn=(document.getElementById('um-cogn').value||'').trim();
   var email=(document.getElementById('um-email').value||'').trim();
-  var role=document.getElementById('um-role').value;
+  var role=(document.getElementById('um-titolo')||{value:''}).value||'';
   var tel=(document.getElementById('um-tel').value||'').trim();
   function umv(id){var el=document.getElementById(id);return el?el.value.trim():'';}
   var newpass=(document.getElementById('um-newpass')&&document.getElementById('um-newpass').value||'').trim();
@@ -3383,7 +3413,7 @@ function saveUserModal(uid){
     if(!pass)return notify('Inserisci la password iniziale','warn');
     var newU={
       id:'u'+Date.now(),nome:nome,cognome:cogn,email:email,
-      pass:pass,isAdmin:role==='admin',tel:tel,
+      pass:pass,isAdmin:isAdminFlag,titolo:role,tel:tel,
       cf:umv('um-cf').toUpperCase(),pec:umv('um-pec'),
       stuIndirizzo:umv('um-stu-ind'),stuCivico:umv('um-stu-civ'),stuCap:umv('um-stu-cap'),stuCitta:umv('um-stu-citta'),stuProvincia:(umv('um-stu-prov')||'').toUpperCase(),
       indirizzo:umv('um-stu-ind'),citta:umv('um-stu-citta'),
