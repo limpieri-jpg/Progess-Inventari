@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0049)file:///C:/Users/User/Downloads/InventPro_72.html -->
+<!-- saved from url=(0049)file:///C:/Users/User/Downloads/InventPro_73.html -->
 <html lang="it"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -8392,8 +8392,8 @@ function renderAvvisoWiz() {
   html += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:16px">';
   html += '<h3 style="margin:0 0 16px;font-size:15px;font-weight:700">2. Commissioni e termini (valori predefiniti per i lotti)</h3>';
   html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px">';
-  html += fldNum('Cauzione (%) *','av-cauz-default', av.cauzDefault||'10');
-  html += fldNum('Rilanci minimi (€) *','av-rilanci-default', av.rilanciDefault||'');
+  html += fldNum('Cauzione (%) *','av-cauz-default', av.cauzDefault||'10', {intero:true});
+  html += fldNum('Rilanci minimi (€) *','av-rilanci-default', av.rilanciDefault||'', {intero:true});
   var _dtipo = av.dirittiTipo||'fisso';
   var _dfissoSel = (_dtipo!=='fasce') ? ' selected' : '';
   var _dfasceSel = (_dtipo==='fasce') ? ' selected' : '';
@@ -8480,8 +8480,8 @@ function renderAvvisoWiz() {
       html += fldNum('Offerta minima (€)','lav-minima-'+l.id, minSalvata);
       html += '</div>';
       html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">';
-      html += fldNum('Cauzione (%)','lav-cauz-'+l.id, av['cauz_'+l.id]||av.cauzDefault||'10');
-      html += fldNum('Rilanci minimi (€)','lav-rilanci-'+l.id, av['rilanci_'+l.id]||av.rilanciDefault||'');
+      html += fldNum('Cauzione (%)','lav-cauz-'+l.id, av['cauz_'+l.id]||av.cauzDefault||'10', {intero:true});
+      html += fldNum('Rilanci minimi (€)','lav-rilanci-'+l.id, av['rilanci_'+l.id]||av.rilanciDefault||'', {intero:true});
       html += '<div id="lav-diritti-wrap-'+l.id+'" data-lotid="'+l.id+'"></div>';
       html += '</div>';
       html += '<div style="margin-top:8px;width:100%"><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:2px">Descrizione lotto (precompilata da inventario)</label>';
@@ -8651,8 +8651,8 @@ function fldNum(label, id, val, opts) {
     +'<input type="text" inputmode="decimal" id="'+id+'" class="form-control" value="'+escHtml(displayVal)+'"></div>';
 }
 function fmtNumPlain(n) {
-  if(!n && n!==0) return '';
-  var v = parseFloat(n);
+  if(n===''||n===null||n===undefined) return '';
+  var v = (typeof n === 'number') ? n : parseItNum(String(n));
   if(isNaN(v)) return '';
   return v.toLocaleString('it-IT', {minimumFractionDigits:2, maximumFractionDigits:2});
 }
@@ -9037,11 +9037,16 @@ function generateAvviso(avId) {
 
     // Diritti d'asta — usa percentuale del primo lotto o default
     var dirPct = avLotti[0] ? (av['diritti_'+avLotti[0].id]||'2') : '2';
+    // Se diritti per fasce, usa descrizione testuale
+    var dirPctDisplay = (dirPct==='fasce') ? 'variabile per fasce' : dirPct+'%';
+    var dirPctTesto = (dirPct==='fasce') ? 'variabile per fasce di prezzo (come da avviso)' : dirPct+'% ('+pctLettere(dirPct)+'%)';
     // Converte percentuale in lettere
     var _numLett = ['zero','uno','due','tre','quattro','cinque','sei','sette','otto','nove','dieci',
       'undici','dodici','tredici','quattordici','quindici','sedici','diciassette','diciotto','diciannove','venti'];
     function pctLettere(n) {
+      if(!n || n==='fasce') return String(n||'');
       var v = parseItNum(String(n));
+      if(isNaN(v)) return String(n);
       if(Number.isInteger(v) && v>=0 && v<=20) return _numLett[v];
       // es. 2.5 → 'due virgola cinque'
       var parts = String(v).replace('.',',').split(',');
@@ -9052,7 +9057,7 @@ function generateAvviso(avId) {
       return txt;
     }
     var dirPctLett = pctLettere(dirPct);
-    children.push(line('Entro il termine di 15 giorni dalla data di aggiudicazione, l\'aggiudicatario dovrà provvedere al versamento integrale dei diritti d\'asta dovuti al Gestore della Vendita Telematica "PRO.GES.S. SRL", nella misura del '+dirPct+'% ('+dirPctLett+'%), da calcolarsi sul prezzo di aggiudicazione, oltre IVA al 22%, a mezzo bonifico bancario sul conto corrente:'));
+    children.push(line('Entro il termine di 15 giorni dalla data di aggiudicazione, l\'aggiudicatario dovrà provvedere al versamento integrale dei diritti d\'asta dovuti al Gestore della Vendita Telematica "PRO.GES.S. SRL", nella misura del '+dirPctTesto+', da calcolarsi sul prezzo di aggiudicazione, oltre IVA al 22%, a mezzo bonifico bancario sul conto corrente:'));
     children.push(emptyLine());
     children.push(par([boldRun('Beneficiario:\t'), normRun('Pro.Ges.S. S.r.l.')], {spacing:{after:60}}));
     children.push(par([boldRun('Banca beneficiario:\t'), normRun('Deutsche Bank Filiale di Lecco, Agenzia di Castello')], {spacing:{after:60}}));
