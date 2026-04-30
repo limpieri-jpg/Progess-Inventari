@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0049)file:///C:/Users/User/Downloads/InventPro_75.html -->
+<!-- saved from url=(0049)file:///C:/Users/User/Downloads/InventPro_76.html -->
 <html lang="it"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -8468,11 +8468,13 @@ function renderAvvisoWiz() {
       var abbPerc      = av['abb_'+l.id]||'';
       var baseSalvata  = av['base_'+l.id]!==undefined ? av['base_'+l.id] : fmtNumPlain(totVG);
       var minSalvata;
-      if(av['minima_'+l.id]!==undefined&&av['minima_'+l.id]!=='') { minSalvata=av['minima_'+l.id]; }
-      else if(abbPerc&&parseFloat(abbPerc)>0&&parseItNum(baseSalvata)>0) {
+      // Ricalcola sempre se c'è abbattimento (evita valori salvati errati)
+      if(abbPerc&&parseFloat(abbPerc)>0&&parseItNum(baseSalvata)>0) {
         var _baseNum = parseItNum(baseSalvata);
         var _minNum = _baseNum*(1-parseFloat(abbPerc)/100);
         minSalvata = fmtNumPlain(_minNum);
+      } else if(av['minima_'+l.id]!==undefined&&av['minima_'+l.id]!=='') {
+        minSalvata=av['minima_'+l.id];
       } else { minSalvata=''; }
       html += fldNum('Valore di stima (€)','lav-stima-'+l.id, stimaSalvata);
       html += '<div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">% Abbattimento</label>'
@@ -8762,6 +8764,21 @@ function salvaEGeneraAvviso() {
 // ══════════════════════════════════════════════════════════════
 
 function generateAvviso(avId) {
+  // Utility: converte percentuale in lettere italiane
+  var _numLett = ['zero','uno','due','tre','quattro','cinque','sei','sette','otto','nove','dieci',
+    'undici','dodici','tredici','quattordici','quindici','sedici','diciassette','diciotto','diciannove','venti'];
+  function pctLettere(n) {
+    if(!n || n==='fasce') return String(n||'');
+    var v = parseItNum(String(n));
+    if(isNaN(v)) return String(n);
+    if(Number.isInteger(v) && v>=0 && v<=20) return _numLett[v];
+    var parts = String(v).replace('.',',').split(',');
+    var intera = parseInt(parts[0])||0;
+    var dec = parts[1]||'';
+    var txt = (intera>=0&&intera<=20)?_numLett[intera]:String(intera);
+    if(dec) txt += ' virgola '+([...dec].map(function(d){return _numLett[parseInt(d)]||d;}).join(' '));
+    return txt;
+  }
   var av = (ls(AVVISI_KEY)||[]).find(function(x){ return x.id===avId; });
   if(!av) { notify('Avviso non trovato','err',2000); return; }
   var proc = currentProc;
@@ -9038,21 +9055,6 @@ function generateAvviso(avId) {
     children.push(emptyLine());
 
     // Diritti d'asta — usa percentuale del primo lotto o default
-    // Converte percentuale in lettere
-    var _numLett = ['zero','uno','due','tre','quattro','cinque','sei','sette','otto','nove','dieci',
-      'undici','dodici','tredici','quattordici','quindici','sedici','diciassette','diciotto','diciannove','venti'];
-    function pctLettere(n) {
-      if(!n || n==='fasce') return String(n||'');
-      var v = parseItNum(String(n));
-      if(isNaN(v)) return String(n);
-      if(Number.isInteger(v) && v>=0 && v<=20) return _numLett[v];
-      var parts = String(v).replace('.',',').split(',');
-      var intera = parseInt(parts[0])||0;
-      var dec = parts[1]||'';
-      var txt = (intera>=0&&intera<=20)?_numLett[intera]:String(intera);
-      if(dec) txt += ' virgola '+([...dec].map(function(d){return _numLett[parseInt(d)]||d;}).join(' '));
-      return txt;
-    }
     var dirPct = avLotti[0] ? (av['diritti_'+avLotti[0].id]||'2') : '2';
     var dirPctDisplay = (dirPct==='fasce') ? 'variabile per fasce' : dirPct+'%';
     var dirPctTesto = (dirPct==='fasce') ? 'variabile per fasce di prezzo (come da avviso)' : dirPct+'% ('+pctLettere(dirPct)+'%)';
