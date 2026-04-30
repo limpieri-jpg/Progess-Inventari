@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0048)file:///C:/Users/User/Downloads/InventPro_2.html -->
+<!-- saved from url=(0048)file:///C:/Users/User/Downloads/InventPro_3.html -->
 <html lang="it"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -1002,6 +1002,24 @@ function parseItNum(s) {
   var str = String(s).trim().replace(/\./g,'').replace(',','.');
   return parseFloat(str)||0;
 }
+function getCFGenere(cf) {
+  // Legge il sesso dal CF: caratteri 9-10 (indice 9,10), giorno nascita
+  // Donna: giorno 41-71, Uomo: giorno 01-31
+  if(!cf || cf.length < 11) return 'M';
+  var giorno = parseInt(cf.substring(9, 11), 10);
+  if(isNaN(giorno)) return 'M';
+  return giorno >= 41 ? 'F' : 'M';
+}
+function titoloCuratore(cf) {
+  return getCFGenere(cf)==='F' ? 'Curatrice' : 'Curatore';
+}
+function sottosc(cf) {
+  return getCFGenere(cf)==='F' ? 'La sottoscritta' : 'Il sottoscritto';
+}
+function dottDott(cf) {
+  return getCFGenere(cf)==='F' ? 'Dott.ssa' : 'Dott.';
+}
+
 function fmtDate(d) {
   // Formato sempre gg/mm/aaaa indipendente dal browser/OS
   if(!d) return '';
@@ -6830,7 +6848,7 @@ function expDocRow(id, label, art, stato, dataCreazione, onOpenFn, onExportFn, r
 
 var SERVIZI_MOBILI = [
   { id: 'stima', label: 'Predisposizione Relazione di stima e Report Fotografico valorizzato', checked: true },
-  { id: 'avvisi', label: 'Coadiuvare il Curatore nella predisposizione degli Avvisi di vendita e dei modelli per offerte irrevocabili', checked: true },
+  { id: 'avvisi', label: 'Coadiuvare il/la Curatore/Curatrice nella predisposizione degli Avvisi di vendita e dei modelli per offerte irrevocabili', checked: true },
   { id: 'visite', label: 'Accompagnare gli utenti interessati alla visita dei beni mobili posti in vendita', checked: true },
   { id: 'pub_progess', label: 'Pubblicità Legale su "Progess Italia"', checked: true },
   { id: 'pub_pvp', label: 'Pubblicità Legale sul Portale delle Vendite Pubbliche (PVP)', checked: true },
@@ -6885,13 +6903,13 @@ function openRelazioneStima(procId) {
   html += '<input type="date" id="rs-data" class="form-control" value="'+new Date().toISOString().substr(0,10)+'"></div>';
   html += '</div>';
   html += '<label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Di cosa si occupa / si occupava l\'azienda</label>';
-  html += '<textarea id="rs-attivita" class="form-control" rows="3" placeholder="Es: officina metalmeccanica specializzata in lavorazioni per conto terzi, tornitura e fresatura CNC..."></textarea>';
+  html += '<textarea id="rs-attivita" class="form-control" style="width:100%;box-sizing:border-box;resize:vertical" rows="3" placeholder="Es: officina metalmeccanica specializzata in lavorazioni per conto terzi, tornitura e fresatura CNC..."></textarea>';
   html += '</div>';
 
   // ── Sezione 1: Motivi della crisi
   html += '<div style="border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px">';
   html += '<div style="font-size:13px;font-weight:700;margin-bottom:10px">📉 Cause della crisi aziendale</div>';
-  html += '<textarea id="rs-crisi" class="form-control" rows="4" placeholder="Es: difficoltà finanziarie legate a calo ordini, perdita commesse principali, aumento costi energia, indebitamento eccessivo..."></textarea>';
+  html += '<textarea id="rs-crisi" class="form-control" style="width:100%;box-sizing:border-box;resize:vertical" rows="4" placeholder="Es: difficoltà finanziarie legate a calo ordini, perdita commesse principali, aumento costi energia, indebitamento eccessivo..."></textarea>';
   html += '</div>';
 
   // ── Sezione 2: Criteri di stima
@@ -6908,13 +6926,13 @@ function openRelazioneStima(procId) {
   html += '</select></div>';
   html += '</div>';
   html += '<label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Note aggiuntive sui criteri (facoltativo)</label>';
-  html += '<textarea id="rs-criteri-note" class="form-control" rows="3" placeholder="Es: macchinari privi di certificazione CE valorizzati come rottame, presenza di beni di proprietà di terzi esclusi..."></textarea>';
+  html += '<textarea id="rs-criteri-note" class="form-control" style="width:100%;box-sizing:border-box;resize:vertical" rows="3" placeholder="Es: macchinari privi di certificazione CE valorizzati come rottame, presenza di beni di proprietà di terzi esclusi..."></textarea>';
   html += '</div>';
 
   // ── Sezione 3: Analisi macroeconomica
   html += '<div style="border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px">';
   html += '<div style="font-size:13px;font-weight:700;margin-bottom:10px">📊 Contesto macroeconomico del settore</div>';
-  html += '<textarea id="rs-macro" class="form-control" rows="4" placeholder="Es: il settore manifatturiero ha subito pressioni da aumento costi energetici e delle materie prime, difficoltà logistiche post-pandemiche, calo investimenti PMI..."></textarea>';
+  html += '<textarea id="rs-macro" class="form-control" style="width:100%;box-sizing:border-box;resize:vertical" rows="4" placeholder="Es: il settore manifatturiero ha subito pressioni da aumento costi energetici e delle materie prime, difficoltà logistiche post-pandemiche, calo investimenti PMI..."></textarea>';
   html += '<div style="margin-top:8px"><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Codice ATECO del settore (facoltativo)</label>';
   html += '<input type="text" id="rs-ateco" class="form-control" placeholder="Es: 25.62 - Lavori di meccanica generale" style="max-width:350px"></div>';
   html += '</div>';
@@ -6922,13 +6940,13 @@ function openRelazioneStima(procId) {
   // ── Sezione 4: Beni esclusi
   html += '<div style="border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px">';
   html += '<div style="font-size:13px;font-weight:700;margin-bottom:10px">🚫 Beni esclusi dalla stima</div>';
-  html += '<textarea id="rs-esclusi" class="form-control" rows="3" placeholder="Es: beni in leasing, beni di proprietà di terzi (codice ZIN-VA-005), assets immateriali (avviamento, marchi, licenze)..."></textarea>';
+  html += '<textarea id="rs-esclusi" class="form-control" style="width:100%;box-sizing:border-box;resize:vertical" rows="3" placeholder="Es: beni in leasing, beni di proprietà di terzi (codice ZIN-VA-005), assets immateriali (avviamento, marchi, licenze)..."></textarea>';
   html += '</div>';
 
   // ── Sezione 5: Conclusioni
   html += '<div style="border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px">';
   html += '<div style="font-size:13px;font-weight:700;margin-bottom:10px">📝 Note conclusive</div>';
-  html += '<textarea id="rs-conclusioni" class="form-control" rows="3" placeholder="Es: i valori riportati sono da ritenersi stime prudenziali in ottica liquidatoria, soggetti a variazioni in caso di vendita in blocco o frazionata..."></textarea>';
+  html += '<textarea id="rs-conclusioni" class="form-control" style="width:100%;box-sizing:border-box;resize:vertical" rows="3" placeholder="Es: i valori riportati sono da ritenersi stime prudenziali in ottica liquidatoria, soggetti a variazioni in caso di vendita in blocco o frazionata..."></textarea>';
   html += '</div>';
 
   // ── Inventario: preview
@@ -6958,6 +6976,9 @@ async function generaRelazioneStima(procId) {
   var arts = (ls(AK)||[]).filter(function(a){ return a.procId===proc.id; });
 
   var nomeCuratore = proc.curatore || (u.nome&&u.cognome ? (u.titolo?u.titolo+' ':'')+u.nome+' '+u.cognome : '');
+  var _cfR = u&&u.cf ? u.cf : (proc.curatoreCF||'');
+  var _isR = getCFGenere(_cfR)==='F';
+  var _titR = _isR ? 'Curatrice' : 'Curatore';
   var dataFmt = fmtDate(new Date((document.getElementById('rs-data')||{}).value||new Date()));
   var sito = ((document.getElementById('rs-sito')||{}).value||'').trim();
   var attivita = ((document.getElementById('rs-attivita')||{}).value||'').trim();
@@ -6998,7 +7019,7 @@ async function generaRelazioneStima(procId) {
     'Sei un perito tecnico che redige perizie di stima in italiano formale per procedure concorsuali. '+
     'Scrivi il paragrafo "Introduzione alla Perizia di Stima" (max 200 parole) per la seguente perizia:\n'+
     'Procedura: '+procNome+' ('+proc.tipo+' n. '+numProc+', Tribunale di '+tribunale+')\n'+
-    'Curatore: '+nomeCuratore+'\n'+
+    (_isR?'Curatrice: ':'Curatore: ')+nomeCuratore+'\n'+
     'Commissionario: '+(proc.commissionario||'Pro.Ges.S. S.r.l.')+'\n'+
     'Attività azienda: '+(attivita||'non specificata')+'\n'+
     (sito?'Sito internet: '+sito+'\n':'')+
@@ -9293,6 +9314,12 @@ function generateAvviso(avId) {
     var rgAnno = proc.rgAnno||'';
     var gd = proc.giudice||'_______________';
     var curNome = (user&&user.nome?((user.titolo?user.titolo+' ':'')+user.nome+' '+user.cognome):proc.curatore)||'_______________';
+    var _cf = user&&user.cf ? user.cf : (proc.curatoreCF||'');
+    var _isFemm = getCFGenere(_cf)==='F';
+    var _titCur = _isFemm ? 'Curatrice' : 'Curatore';
+    var _sottosc = _isFemm ? 'La sottoscritta' : 'Il sottoscritto';
+    var _nellaSua = _isFemm ? 'nella sua qualità di Curatrice' : 'nella sua qualità di Curatore';
+    var _dottPre = _isFemm ? 'Dott.ssa ' : 'Dott. ';
     var pecProc = proc.pec||'_______________';
     var nEsper = av.nEsperimento||'1';
     var dataAutGD = av.dataAutGD||'_______________';
@@ -9336,7 +9363,7 @@ function generateAvviso(avId) {
     if(rgAnno) children.push(centeredBold('NR./ANNO '+rgAnno, 22));
     children.push(emptyLine());
     children.push(centeredBold('GIUDICE DELEGATO: '+gd, 22));
-    children.push(centeredBold((av.modalita==='sincrona_tel'?'CURATORE:':'CURATORE: Dott. ')+curNome, 22));
+    children.push(centeredBold((av.modalita==='sincrona_tel'?'CURATORE:':('CURATORE: '+_dottPre))+curNome, 22));
     children.push(emptyLine());
     children.push(separator());
     children.push(emptyLine());
@@ -9357,7 +9384,7 @@ function generateAvviso(avId) {
     var sentData = proc.sentenzaData||'';
     var sentNum  = proc.sentenzaNum||'';
     var sentTxt  = sentData ? (sentNum ? sentNum+' del '+sentData : 'del '+sentData) : (sentNum||'_______________');
-    var preambolo = 'Il sottoscritto '+curNome+', nella sua qualità di Curatore della Procedura n. '+rgAnno+', dichiarata dal Tribunale di '+tribunale+' con sentenza '+sentTxt+' (PEC della procedura: '+pecCuratore+')';
+    var preambolo = _sottosc+' '+curNome+', '+_nellaSua+' della Procedura n. '+rgAnno+', dichiarata dal Tribunale di '+tribunale+' con sentenza '+sentTxt+' (PEC della procedura: '+pecCuratore+')';
     if(!isAsteMag) {
       preambolo += '\n\n- Visto il Programma di Liquidazione dell\'attivo della procedura già predisposto ed approvato a norma dell\'art. 213 CCII;\n- Vista l\'autorizzazione emessa in data '+dataAutGD+' dall\'Ill.mo Sig. Giudice Delegato Dott. '+gd+' a norma dell\'articolo 216 CCII;';
     }
@@ -9549,7 +9576,7 @@ function generateAvviso(avId) {
     // ═══ VARIE ═══
     children.push(sectionTitle('VARIE'));
     children.push(line('I beni posti in vendita potranno essere visionati previo appuntamento con il Gestore della Vendita Telematica Pro.Ges.S. al Telefono: 0341.593511 oppure a mezzo E-mail: info@progess-italia.it.'));
-    children.push(line('Ogni ulteriore informazione potrà essere chiesta alla stessa Pro.Ges.S. S.r.l. all\'indirizzo e-mail info@progess-italia.it o al Curatore '+curNome+' Tel. '+telCuratore+' – PEC della procedura: '+pecCuratore+'.'));
+    children.push(line('Ogni ulteriore informazione potrà essere chiesta alla stessa Pro.Ges.S. S.r.l. all\'indirizzo e-mail info@progess-italia.it o al/alla '+_titCur+' '+curNome+' Tel. '+telCuratore+' – PEC della procedura: '+pecCuratore+'.'));
     children.push(emptyLine());
 
     // ═══ FORO DI COMPETENZA ═══
@@ -9568,7 +9595,7 @@ function generateAvviso(avId) {
     var dataF = av.dataAvviso||(fmtDate(new Date()));
     children.push(par([normRun(comuneF+', '+dataF)], {spacing:{after:200}}));
     children.push(emptyLine());
-    children.push(par([boldRun('IL CURATORE')], {spacing:{after:60}}));
+    children.push(par([boldRun(_isFemm?'LA CURATRICE':'IL CURATORE')], {spacing:{after:60}}));
     children.push(par([normRun(curNome)], {}));
 
     // ═══ Build documento ═══
