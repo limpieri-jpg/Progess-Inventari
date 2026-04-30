@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0049)file:///C:/Users/User/Downloads/InventPro_76.html -->
+<!-- saved from url=(0049)file:///C:/Users/User/Downloads/InventPro_77.html -->
 <html lang="it"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -8437,7 +8437,7 @@ function renderAvvisoWiz() {
     +'<button type="button" class="btn" onclick="addFascia()" style="font-size:12px;margin-top:8px;border:1px dashed var(--border)">+ Aggiungi fascia</button>'
     +'</div></div>';
   html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:10px">';
-  html += '<div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Data presentaz. offerte</label><input type="date" id="av-termineOfferteData" class="form-control" value="'+escHtml(av.termineOfferteData||'')+'" style="font-size:13px"></div>';
+  html += '<div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Termine presentaz. offerte</label><input type="date" id="av-termineOfferteData" class="form-control" value="'+escHtml(av.termineOfferteData||'')+'" style="font-size:13px"></div>';
   html += '<div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Ora presentaz. offerte</label><input type="time" id="av-termineOfferteOra" class="form-control" value="'+escHtml(av.termineOfferteOra||'12:00')+'" style="font-size:13px"></div>';
   html += fldNum('Termine saldo prezzo (gg)','av-termineSaldo', av.termineSaldo||'120', {intero:true});
   html += '</div>';
@@ -8808,7 +8808,7 @@ function generateAvviso(avId) {
       return par([boldRun(txt,sz)], {alignment: Al.CENTER, spacing:{after:80,line:360,lineRule:'auto'}});
     }
     function line(txt, indent) {
-      return par([normRun(txt)], {spacing:{after:120,line:360,lineRule:'auto'}, indent: indent?{left:indent}:undefined});
+      return par([normRun(txt)], {alignment:Al.BOTH, spacing:{after:120,line:360,lineRule:'auto'}, indent: indent?{left:indent}:undefined});
     }
     function emptyLine() {
       return par([new T({text:''})], {spacing:{after:80}});
@@ -8820,7 +8820,7 @@ function generateAvviso(avId) {
       return par([boldRun(label), normRun(value)], {spacing:{after:80,line:360,lineRule:'auto'}, indent:indent?{left:indent}:undefined});
     }
     function sectionTitle(txt) {
-      return par([boldRun(txt.toUpperCase(),22)], {spacing:{before:200,after:80,line:360,lineRule:'auto'}});
+      return par([boldRun(txt.toUpperCase(),22)], {alignment:Al.CENTER, spacing:{before:200,after:80,line:360,lineRule:'auto'}});
     }
 
     // Dati procedura
@@ -8995,7 +8995,7 @@ function generateAvviso(avId) {
       children.push(line('Saranno considerate ammissibili esclusivamente le offerte depositate in modalità cartacea o telematica che rispettano i requisiti riportati sul presente avviso di vendita.'));
       children.push(emptyLine());
       children.push(par([boldRun('OFFERTA CARTACEA:')], {spacing:{after:60}}));
-      children.push(line('L\'offerta dovrà essere presentata presso la sede del Soggetto Specializzato alla Vendita "Pro.Ges.S. S.r.l." - Lecco (Lc) Via Giuseppe Parini n. 29, nei giorni feriali, escluso il sabato, dalle ore 9:00 alle ore 13:00 e dalle ore 14:30 alle ore 18:30, entro e non oltre le ore 12:00 del secondo giorno lavorativo precedente la data di vendita ('+termineOfferte+', in busta chiusa sigillata, controfirmata sul lembo di chiusura.'));
+      children.push(line('L\'offerta dovrà essere presentata presso la sede del Soggetto Specializzato alla Vendita "Pro.Ges.S. S.r.l." - Lecco (Lc) Via Giuseppe Parini n. 29, nei giorni feriali, escluso il sabato, dalle ore 9:00 alle ore 13:00 e dalle ore 14:30 alle ore 18:30, entro e non oltre le ore 12:00 del secondo giorno lavorativo precedente la data di vendita ('+termineOfferte+'), in busta chiusa sigillata, controfirmata sul lembo di chiusura.'));
       children.push(emptyLine());
       children.push(par([boldRun('OFFERTA TELEMATICA:')], {spacing:{after:60}}));
       children.push(line('L\'offerta dovrà essere formulata esclusivamente tramite il modulo web "Offerta Telematica" fornito dal Ministero della Giustizia, cui è possibile accedere dal portale del gestore della vendita www.progess-italia.it, e dovrà essere trasmessa all\'indirizzo PEC del Ministero della Giustizia offertapvp.dgsia@giustiziacert.it.'));
