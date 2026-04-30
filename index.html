@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0048)file:///C:/Users/User/Downloads/InventPro_4.html -->
+<!-- saved from url=(0048)file:///C:/Users/User/Downloads/InventPro_5.html -->
 <html lang="it"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -4726,10 +4726,10 @@ var DOCUMENTO_TIPI = [
     scadenza: { giorni: 60, da: 'esecutivita_passivo', label: '60 gg dal decreto di esecutività dello stato passivo' },
     desc: 'Relazione su cause dell\'insolvenza, responsabilità e diligenza del debitore',
     sezioni: [
-      { id: 'premessa', label: 'Premessa e nomina', prompt: 'Redigi la sezione introduttiva con i dati della nomina del curatore e l\'apertura della procedura.' },
-      { id: 'cause', label: 'Cause e tempi dell\'insolvenza', prompt: 'Analizza le cause e i tempi dell\'insorgere della crisi e dell\'insolvenza.' },
-      { id: 'diligenza', label: 'Diligenza del debitore', prompt: 'Valuta la diligenza del debitore nella gestione dell\'impresa.' },
-      { id: 'responsabilita', label: 'Responsabilità civili e penali', prompt: 'Esamina eventuali responsabilità civili e penali di debitore, amministratori e organi di controllo.' },
+      { id: 'premessa', label: 'Premessa e nomina', prompt: 'Redigi la sezione di premessa e nomina. Apri con la nomina del curatore ai sensi dell\'art. 128 CCII, riportando gli estremi del decreto del Tribunale, la data di apertura della procedura e il numero RG. Descrivi le prime attività svolte: presa in possesso dei beni, richiesta documentazione contabile, comunicazioni agli organi. Usa il genere corretto del curatore (indicato nei dati procedura).' },
+      { id: 'cause', label: 'Cause e tempi dell\'insolvenza', prompt: 'Analizza le cause e i tempi dell\'insorgere della crisi e dell\'insolvenza ai sensi dell\'art. 130, co. 5, lett. a) CCII. Identifica le cause endogene ed esogene, il momento in cui l\'insolvenza si è manifestata, la correlazione tra la gestione e il dissesto. Cita le risultanze contabili e documentali.' },
+      { id: 'diligenza', label: 'Diligenza del debitore', prompt: 'Valuta la diligenza del debitore nella gestione dell\'impresa ai sensi dell\'art. 130, co. 5, lett. b) CCII e dell\'art. 2392 c.c. Analizza le scelte gestionali, il rispetto degli obblighi contabili e tributari, la tempestività nella rilevazione della crisi e i comportamenti tenuti nell\'anno antecedente il fallimento.' },
+      { id: 'responsabilita', label: 'Responsabilità civili e penali', prompt: 'Esamina eventuali responsabilità civili (artt. 2392-2407 c.c.) e penali (artt. 322-335 CCII, reati fallimentari) di debitore, amministratori, sindaci e revisori. Indica le azioni recuperatorie esperibili: revocatorie (art. 166 CCII), risarcitorie, di responsabilità ex art. 2476 c.c.' },
       { id: 'rapporti', label: 'Rapporti infragruppo', prompt: 'Descrivi eventuali rapporti infragruppo rilevanti ai fini della procedura.' },
     ],
     campi: ['data_sentenza','data_esecutivita','cause_insolvenza','diligenza_debitore','responsabilita','rapporti_infragruppo','note_aggiuntive']
@@ -4742,11 +4742,11 @@ var DOCUMENTO_TIPI = [
     scadenza: { giorni: 60, da: 'inventario', label: '60 gg dalla redazione inventario (max 150 gg dalla sentenza)' },
     desc: 'Piano di liquidazione dell\'attivo con tempistiche, modalità e previsioni di realizzo',
     sezioni: [
-      { id: 'immobili', label: 'Liquidazione beni immobili', prompt: 'Redigi la sezione sulla liquidazione dei beni immobili con modalità, tempistiche e previsioni di realizzo.' },
-      { id: 'mobili', label: 'Liquidazione altri beni', prompt: 'Redigi la sezione sulla liquidazione dei beni mobili per categoria merceologica.' },
-      { id: 'crediti', label: 'Riscossione crediti', prompt: 'Illustra le modalità e le prospettive di riscossione dei crediti della procedura.' },
-      { id: 'azioni', label: 'Azioni giudiziali', prompt: 'Descrivi le azioni giudiziali da intraprendere o proseguire e il subentro in liti pendenti.' },
-      { id: 'costi', label: 'Costi e tempi previsti', prompt: 'Fornisci una stima dei costi e dei tempi complessivi della liquidazione.' },
+      { id: 'immobili', label: 'Liquidazione beni immobili', prompt: 'Redigi la sezione sulla liquidazione dei beni immobili ai sensi dell\'art. 213 CCII. Indica le modalità di vendita (asta telematica, trattativa privata ex art. 216 CCII), i tempi stimati, il valore di stima, il prezzo base e le previsioni di realizzo. Cita l\'eventuale necessità di autorizzazione del GD.' },
+      { id: 'mobili', label: 'Liquidazione altri beni', prompt: 'Redigi la sezione sulla liquidazione dei beni mobili ai sensi dell\'art. 213 CCII. Organizza per categoria merceologica (macchinari, arredi, attrezzature, scorte). Per ciascuna categoria indica: modalità di vendita, stima del realizzo, tempi previsti. Specifica se la vendita avviene tramite commissionario (Pro.Ges.S.) con riferimento al mandato in essere.' },
+      { id: 'crediti', label: 'Riscossione crediti', prompt: 'Illustra le modalità e le prospettive di riscossione dei crediti della procedura ai sensi dell\'art. 213 CCII. Analizza i crediti per natura (commerciali, tributari, da lavoro, da azioni revocatorie). Per ciascuna categoria indica: importo, grado di recuperabilità, azioni intraprese o da intraprendere, tempi stimati.' },
+      { id: 'azioni', label: 'Azioni giudiziali', prompt: 'Descrivi le azioni giudiziali da intraprendere o proseguire ai sensi degli artt. 163, 166-167 CCII. Elenca: liti pendenti in cui subentra la procedura, azioni revocatorie ordinarie e fallimentari, azioni di responsabilità, recupero crediti. Per ciascuna: controparte, valore, probabilità di esito favorevole, costi stimati.' },
+      { id: 'costi', label: 'Costi e tempi previsti', prompt: 'Fornisci la stima dei costi e dei tempi della procedura ai sensi dell\'art. 213 CCII. Elenca: compenso curatore (art. 216 co. 4 CCII), spese legali, spese di vendita, costi di custodia e gestione, contributo PVP (art. 368 CCII). Indica la durata stimata della procedura con un cronoprogramma delle principali attività.' },
     ],
     campi: ['data_inventario','data_sentenza','stima_durata','costi_previsti','note_immobili','note_mobili','note_crediti','note_azioni']
   }
@@ -5183,7 +5183,7 @@ function generaSezione(docId, sezId) {
     });
   }
 
-  var prompt = 'Sei un assistente legale specializzato in diritto concorsuale italiano (D.Lgs. 14/2019 CCII).\n\n';
+  var prompt = 'Sei un esperto di diritto concorsuale italiano con ventennale esperienza nella redazione di atti giudiziali e documenti di procedura. Conosci a fondo il Codice della Crisi d\'Impresa e dell\'Insolvenza (D.Lgs. 14/2019, CCII), il Codice di Procedura Civile, il Codice Civile e la normativa fiscale applicabile alle procedure concorsuali. Redigi i testi con stile forense italiano di alto livello: formale, tecnico, preciso, con riferimenti normativi puntuali.\n\n';
   prompt += '=== DOCUMENTO: '+tipo.label+' ('+tipo.art+') ===\n';
   prompt += '=== SEZIONE: '+sez.label+' ===\n\n';
   prompt += '=== DATI PROCEDURA ===\n';
@@ -5218,8 +5218,8 @@ function generaSezione(docId, sezId) {
   if(noteDocSezAI.trim()) prompt += '\n=== INDICAZIONI SPECIFICHE DEL CURATORE PER QUESTA SEZIONE ===\n'+noteDocSezAI+'\n';
   prompt += '\n=== ISTRUZIONI ===\n';
   prompt += sez.prompt+'\n';
-  prompt += 'Usa linguaggio forense italiano formale e tecnico. Cita art. '+tipo.art+' e le norme correlate.\n';
-  prompt += 'Il testo deve essere completo, pronto per la revisione del curatore. Lunghezza: 300-600 parole.';
+  prompt += '\nNorma di riferimento: '+tipo.art+'\n';
+  prompt += '\n=== STILE E FORMATO OBBLIGATORI ===\n1. LINGUAGGIO: italiano forense formale e tecnico-giuridico. Usa: \'si è proceduto a\', \'è stato accertato che\', \'si evidenzia che\', \'in ottica di\', \'ai sensi di\', \'alla luce di\'\n2. STRUTTURA: frasi complete con subordinate articolate. Niente frasi brevi o telegrafiche.\n3. NORME: cita disposizioni normative pertinenti con articolo e fonte precisi. Non citare norme generiche.\n4. ELENCHI: usa \'\u2022\' per gli elenchi. Voci concise e tecniche, terminate con punto e virgola.\n5. SPUNTI: usa le note del curatore come spunto, elabora e arricchisci professionalmente.\n6. OUTPUT: solo il corpo del testo, senza titoli, intestazioni o note esplicative.\n7. LUNGHEZZA: 350-600 parole calibrate sulla complessità della sezione.\n';
 
   var xhr = new XMLHttpRequest();
   xhr.open('POST','https://api.anthropic.com/v1/messages',true);
@@ -6017,7 +6017,7 @@ function generaRapportoSezione(rapId, sezId) {
   if(ed) ed.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted)"><div style="font-size:28px">&#9881;&#65039;</div>Generazione in corso...</div>';
 
   // Prompt
-  var prompt = 'Sei un assistente legale specializzato in diritto concorsuale italiano (D.Lgs. 14/2019 CCII).\n\n';
+  var prompt = 'Sei un esperto di diritto concorsuale italiano con ventennale esperienza nella redazione di atti giudiziali e documenti di procedura. Conosci a fondo il Codice della Crisi d\'Impresa e dell\'Insolvenza (D.Lgs. 14/2019, CCII), il Codice di Procedura Civile, il Codice Civile e la normativa fiscale applicabile alle procedure concorsuali. Redigi i testi con stile forense italiano di alto livello: formale, tecnico, preciso, con riferimenti normativi puntuali.\n\n';
   prompt += '=== DOCUMENTO: '+tipo.label+' ('+tipo.art+') ===\n';
   prompt += '=== SEZIONE: '+sez.label+' ===\n\n';
   prompt += buildContestoProcedura(proc, null);
@@ -6046,7 +6046,8 @@ function generaRapportoSezione(rapId, sezId) {
   var noteSezCuratore = (rap.campi && rap.campi['note_sez_'+sezId]) || '';
   if(noteSezCuratore.trim()) prompt += '\n=== INDICAZIONI SPECIFICHE DEL CURATORE PER QUESTA SEZIONE ===\n'+noteSezCuratore+'\n';
   prompt += '\n=== ISTRUZIONI ===\n'+sez.hint+'\n';
-  prompt += 'Redigi questa sezione del rapporto in italiano forense formale. Cita l\''+tipo.art+'. Lunghezza: 250-500 parole.';
+  prompt += '\nNorma di riferimento: '+tipo.art+'\n';
+  prompt += '\n=== STILE E FORMATO OBBLIGATORI ===\n1. LINGUAGGIO: italiano forense formale e tecnico-giuridico. Usa: \'si è proceduto a\', \'è stato accertato che\', \'si evidenzia che\', \'in ottica di\', \'ai sensi di\', \'alla luce di\'\n2. STRUTTURA: frasi complete con subordinate articolate. Niente frasi brevi o telegrafiche.\n3. NORME: cita disposizioni normative pertinenti con articolo e fonte precisi. Non citare norme generiche.\n4. ELENCHI: usa \'\u2022\' per gli elenchi. Voci concise e tecniche, terminate con punto e virgola.\n5. SPUNTI: usa le note del curatore come spunto, elabora e arricchisci professionalmente.\n6. OUTPUT: solo il corpo del testo, senza titoli, intestazioni o note esplicative.\n7. LUNGHEZZA: 350-600 parole calibrate sulla complessità della sezione.\n';
 
   var xhr = new XMLHttpRequest();
   xhr.open('POST','https://api.anthropic.com/v1/messages',true);
@@ -6625,7 +6626,8 @@ function generaRipartoSezione(ripId, sezId) {
   if(sezPrec) prompt+='\n=== SEZIONI GIA REDATTE ===\n'+sezPrec;
 
   prompt+='\n=== ISTRUZIONI ===\n'+sez.hint+'\n';
-  prompt+='Redigi questa sezione in italiano forense formale. Cita sempre '+tipo.art+' e gli articoli correlati (artt. 220-231 CCII). Lunghezza: 250-500 parole.';
+  prompt+='\nNorma di riferimento: '+tipo.art+' e artt. 220-231 CCII\n';
+  prompt+='\n=== STILE E FORMATO OBBLIGATORI ===\n1. LINGUAGGIO: italiano forense formale e tecnico-giuridico. Usa: \'si è proceduto a\', \'è stato accertato che\', \'si evidenzia che\', \'in ottica di\', \'ai sensi di\', \'alla luce di\'\n2. STRUTTURA: frasi complete con subordinate articolate. Niente frasi brevi o telegrafiche.\n3. NORME: cita disposizioni normative pertinenti con articolo e fonte precisi. Non citare norme generiche.\n4. ELENCHI: usa \'\u2022\' per gli elenchi. Voci concise e tecniche, terminate con punto e virgola.\n5. SPUNTI: usa le note del curatore come spunto, elabora e arricchisci professionalmente.\n6. OUTPUT: solo il corpo del testo, senza titoli, intestazioni o note esplicative.\n7. LUNGHEZZA: 350-600 parole calibrate sulla complessità della sezione.\n';
 
   var xhr=new XMLHttpRequest();
   xhr.open('POST','https://api.anthropic.com/v1/messages',true);
