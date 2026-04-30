@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0048)file:///C:/Users/User/Downloads/InventPro_7.html -->
+<!-- saved from url=(0048)file:///C:/Users/User/Downloads/InventPro_3.html -->
 <html lang="it"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -7030,6 +7030,21 @@ async function generaRelazioneStima(procId) {
     +'- Scrivi SOLO il corpo del testo, senza titoli, senza intestazioni, senza note a piè di pagina\n'
     +'- Genere: '+ (_isR?'femminile (la curatrice è una donna, usa "dott.ssa", "la sottoscritta", "nella sua qualità di Curatrice")':'maschile (il curatore è un uomo, usa "dott.", "il sottoscritto", "nella sua qualità di Curatore")')+'\n';
 
+  // Costruisce lista dettagliata beni per i prompt AI
+  var beniDettaglio = '';
+  arts.forEach(function(a, i){
+    var desc = a.descBreve||a.descrizione||a.nome||'';
+    var val = parseItNum(String(a.valGiud||0));
+    var qta = parseFloat(a.qta)||1;
+    beniDettaglio += '\n- '+(i+1)+'. '+desc;
+    if(a.marca) beniDettaglio += ' ('+a.marca+(a.modello?' '+a.modello:'')+')' ;
+    if(a.categoria) beniDettaglio += ' ['+a.categoria+']';
+    beniDettaglio += ' — Q.tà: '+qta+' '+(a.unitaMisura||'UN');
+    beniDettaglio += ' — Valore: €'+fmtNumPlain(val);
+    if(a.note) beniDettaglio += ' — NOTE: '+a.note;
+    if(a.descEstesa) beniDettaglio += '\n  Descrizione: '+a.descEstesa.substring(0,200);
+  });
+
   var baseCtx = 'Sei un perito tecnico esperto di procedure concorsuali italiane con stile formale e tecnico.\n'
     + STILE
     +'CONTESTO DELLA PERIZIA:\n'
@@ -7041,7 +7056,13 @@ async function generaRelazioneStima(procId) {
     +(sito?'- Sito internet azienda: '+sito+'\n':'')
     +(ateco?'- Settore ATECO: '+ateco+'\n':'')
     +'- Attività azienda: '+(attivita||'attività commerciale/industriale')+'\n'
-    +'- N. beni inventariati: '+arts.length+'\n';
+    +(crisi?'- Cause della crisi (indicazioni curatore): '+crisi+'\n':'')
+    +(macro?'- Contesto macroeconomico (indicazioni curatore): '+macro+'\n':'')
+    +(criteriNote?'- Note sui criteri di stima (indicazioni curatore): '+criteriNote+'\n':'')
+    +(esclusi?'- Beni esclusi dalla valutazione: '+esclusi+'\n':'')
+    +(conclusioni?'- Note conclusive (indicazioni curatore): '+conclusioni+'\n':'')
+    +'- Totale beni inventariati: '+arts.length+' articoli\n'
+    +(beniDettaglio?'\nINVENTARIO DETTAGLIATO DEI BENI:'+beniDettaglio+'\n':'');
 
   var [tIntro, tAttivita, tBeni, tCrisi, tMacro, tCriteri, tConclusioni] = await Promise.all([
 
@@ -7060,11 +7081,14 @@ async function generaRelazioneStima(procId) {
       +'3. Descrivere la struttura aziendale (reparti, magazzino, uffici)\n'
       +'4. Chiudere con: "L\'impresa ha operato regolarmente fino al manifestarsi delle difficoltà economiche che hanno portato all\'apertura della '+proc.tipo+' n. '+numProc+', con conseguente cessazione dell\'attività."'),
 
-    aiTesto(baseCtx+'\nSCRIVI IL PARAGRAFO "3. Beni aziendali oggetto di perizia" (100-130 parole).\n'
+    aiTesto(baseCtx+'\nSCRIVI IL PARAGRAFO "3. Beni aziendali oggetto di perizia" (130-180 parole).\n'
       +'Il paragrafo deve:\n'
-      +'1. Aprire con "Sono stati oggetto di ricognizione e valutazione i seguenti beni:"\n'
-      +'2. Elencare puntato le categorie di beni presenti nell\'inventario ('+arts.length+' articoli totali), deducendole dall\'attività: '+(attivita||'attività industriale')+'\n'
-      +(esclusi?'3. Aggiungere paragrafo su beni esclusi: '+esclusi+'\n':'')),
+      +'1. Aprire con "Sono stati oggetto di ricognizione e valutazione i seguenti beni presenti nei locali aziendali:"\n'
+      +'2. Raggruppare i beni per CATEGORIA MERCEOLOGICA basandoti sull\'inventario dettagliato fornito nel contesto. '
+      +'Elenca le categorie principali emerse (es. macchinari, attrezzature, arredi, veicoli, ecc.) con una breve descrizione per ciascuna.\n'
+      +'3. Usa dati reali dall\'inventario: numero di articoli per categoria, marche/modelli rilevanti.\n'
+      +(esclusi?'4. Aggiungi nota finale: "Si evidenzia che '+esclusi+' non rientra/no nel perimetro della presente valutazione."\n':'')
+      +'IMPORTANTE: basa il contenuto ESCLUSIVAMENTE sui beni elencati nell\'inventario dettagliato fornito.'),
 
     aiTesto(baseCtx+'\nSCRIVI IL PARAGRAFO "4. Cause della crisi aziendale" (130-160 parole).\n'
       +'Il paragrafo deve:\n'
@@ -7279,7 +7303,7 @@ async function generaRelazioneStima(procId) {
       var vt=vu*qta;
       var bg=i%2===0?'FFFFFF':'F8F8F8';
       invRows.push(new D.TableRow({children:[
-        new D.TableCell({children:[pr([t((a.marca?a.marca+' ':'')+a.descrizione,10)],{alignment:Al.LEFT})],width:{size:cA,type:WT.DXA},shading:{fill:bg,type:ST.CLEAR},borders:brdAll,margins:{top:80,bottom:80,left:120,right:60}}),
+        new D.TableCell({children:[pr([t((a.marca?a.marca+' ':'')+((a.descBreve||a.descrizione||a.nome||'Articolo n.'+(i+1))),10)],{alignment:Al.LEFT})],width:{size:cA,type:WT.DXA},shading:{fill:bg,type:ST.CLEAR},borders:brdAll,margins:{top:80,bottom:80,left:120,right:60}}),
         new D.TableCell({children:[pr([t(a.unitaMisura||'UN',10)],{alignment:Al.CENTER})],width:{size:cB,type:WT.DXA},shading:{fill:bg,type:ST.CLEAR},borders:brdAll,margins:{top:80,bottom:80,left:60,right:60}}),
         new D.TableCell({children:[pr([t(String(qta),10)],{alignment:Al.CENTER})],width:{size:cC,type:WT.DXA},shading:{fill:bg,type:ST.CLEAR},borders:brdAll,margins:{top:80,bottom:80,left:60,right:60}}),
         new D.TableCell({children:[pr([t(fmtNumPlain(vu),10)],{alignment:Al.RIGHT})],width:{size:cD,type:WT.DXA},shading:{fill:bg,type:ST.CLEAR},borders:brdAll,margins:{top:80,bottom:80,left:60,right:60}}),
@@ -7300,26 +7324,37 @@ async function generaRelazioneStima(procId) {
     children.push(prC([t('Giudice: '+(proc.giudice||''),{size:20,color:GRIGIO})],{spacing:{after:10}}));
     children.push(prC([t(_titR+': '+nomeCuratore,{size:20,color:GRIGIO})],{spacing:{after:40}}));
 
+    // Funzione per caricare TUTTE le foto di un articolo
+    function loadAllPhotos(artId) {
+      return new Promise(function(resolve){
+        idbLoadPhotos(artId, function(photos){ resolve(photos||[]); });
+      });
+    }
+
     for(var ai=0;ai<arts.length;ai++){
       var a=arts[ai];
-      var photoB64=await loadPhoto(a.id);
-      children.push(new D.Paragraph({children:[tB((ai+1)+'. '+(a.marca?a.marca+' ':'')+a.descrizione,{size:22,color:BLU})],
+      var allPhotos=await loadAllPhotos(a.id);
+      var desc=(a.descBreve||a.descrizione||a.nome||'Articolo n.'+(ai+1));
+      var titolo=(ai+1)+'. '+(a.marca?a.marca+' ':'')+desc;
+
+      // Titolo articolo
+      children.push(new D.Paragraph({children:[tB(titolo,{size:22,color:BLU})],
         border:{bottom:{style:BS.SINGLE,size:4,color:ROSSO,space:2}},spacing:{before:200,after:80}}));
-      var infoLines=[];
-      if(a.marca) infoLines.push('Marca: '+a.marca);
-      if(a.modello) infoLines.push('Modello: '+a.modello);
-      if(a.categoria) infoLines.push('Categoria: '+a.categoria);
-      infoLines.push('Quantit\u00e0: '+(a.qta||1)+' '+(a.unitaMisura||'UN'));
-      infoLines.push('Valore unitario: \u20ac '+fmtNumPlain(parseItNum(String(a.valGiud||0))));
-      if(a.note) infoLines.push('Note: '+a.note);
-      infoLines.forEach(function(row){ children.push(pr([t(row,10)],{spacing:{after:40}})); });
-      if(photoB64){
-        try{
-          var imgData=photoB64.split(',')[1]||photoB64;
-          children.push(new D.Paragraph({children:[new D.ImageRun({data:Uint8Array.from(atob(imgData),function(c){return c.charCodeAt(0);}),transformation:{width:300,height:200},type:'jpg'})],spacing:{after:120}}));
-        }catch(e){}
+
+      // Solo quantità
+      children.push(pr([t('Quantità: '+(a.qta||1)+' '+(a.unitaMisura||'UN'),10)],{spacing:{after:80}}));
+
+      // Tutte le foto
+      if(allPhotos.length>0){
+        allPhotos.forEach(function(photoB64){
+          if(!photoB64) return;
+          try{
+            var imgData=photoB64.split(',')[1]||photoB64;
+            children.push(new D.Paragraph({children:[new D.ImageRun({data:Uint8Array.from(atob(imgData),function(c){return c.charCodeAt(0);}),transformation:{width:280,height:190},type:'jpg'})],spacing:{after:60}}));
+          }catch(e){}
+        });
       }
-      children.push(pEmpty());
+      children.push(pEmpty(120));
     }
 
     var doc = new D.Document({
