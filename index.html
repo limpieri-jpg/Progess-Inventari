@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0049)file:///C:/Users/User/Downloads/InventPro_77.html -->
+<!-- saved from url=(0049)file:///C:/Users/User/Downloads/InventPro_78.html -->
 <html lang="it"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -1002,6 +1002,16 @@ function parseItNum(s) {
   var str = String(s).trim().replace(/\./g,'').replace(',','.');
   return parseFloat(str)||0;
 }
+function fmtDate(d) {
+  // Formato sempre gg/mm/aaaa indipendente dal browser/OS
+  if(!d) return '';
+  var dt = (d instanceof Date) ? d : new Date(d);
+  if(isNaN(dt.getTime())) return String(d);
+  var dd = String(dt.getDate()).padStart(2,'0');
+  var mm = String(dt.getMonth()+1).padStart(2,'0');
+  var yyyy = dt.getFullYear();
+  return dd+'/'+mm+'/'+yyyy;
+}
 function vv(id){var e=g(id);return e?e.value.trim():''}
 function fmtEur(n){return '€'+parseFloat(n||0).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2})}
 function getSettings(){return ls(SK)||{ragSoc:'InventPro Srl',indirizzo:'',comune:'',cap:'',provincia:'',piva:'',logo:''}}
@@ -1377,7 +1387,7 @@ function renderProcDetail(){
   c1.innerHTML='<div class="card-title" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none" onclick="var b=this.nextSibling;var a=this.querySelector(\'span.toggle-arrow\');var open=b.style.display!==\'none\';b.style.display=open?\'none\':\'\';a.style.transform=open?\'rotate(-90deg)\':\'\';void 0">Dati procedura <span class="toggle-arrow" style="font-size:12px;transition:transform .2s;display:inline-block;transform:rotate(-90deg)">&#9660;</span></div>'
     +'<div class="c1-body" style="display:none"><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">'
     +['Tipo|'+p.tipo,'N. Procedura|'+(p.num||'—'),'Tribunale|'+(p.tribunale||'—'),'Giudice Delegato|'+(p.giudice||'—'),'Curatore|'+(p.curatore||'—'),'Commissionario|'+(p.commissionario||'—'),'Email professionista|'+(currentUser.email||'—')].map(function(s){var sp=s.split('|');return'<div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">'+sp[0]+'</div><div>'+sp[1]+'</div></div>';}).join('')
-    +'<div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Data apertura</div><div>'+(p.data?new Date(p.data).toLocaleDateString('it-IT'):'—')+'</div></div>'
+    +'<div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Data apertura</div><div>'+(p.data?fmtDate(new Date(p.data)):'—')+'</div></div>'
     +'<div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Stato</div><span class="badge '+(isAttiva?'b-green':'b-gray')+'">'+p.status+'</span></div>'
     +'</div>';
   el.appendChild(c1);
@@ -2875,7 +2885,7 @@ function importBackupJSON(input){
     try{
       var data=JSON.parse(e.target.result);
       if(!data.procedure&&!data.articoli){notify('File non valido','err',4000);return;}
-      var dateStr=data.exportDate?new Date(data.exportDate).toLocaleDateString('it-IT'):'?';
+      var dateStr=data.exportDate?fmtDate(new Date(data.exportDate)):'?';
       var totFoto=(data.articoli||[]).reduce(function(s,a){return s+(a.photos||[]).length;},0);
       customConfirm('Importare backup del '+dateStr+'?\n'
         +(data.procedure||[]).length+' procedure, '+(data.articoli||[]).length+' articoli, '+totFoto+' foto.',
@@ -3217,7 +3227,7 @@ function exportUtentiExcel(){
   var users=ls(UK)||[];
   var wb=XLSX.utils.book_new();
   var hdr=['Nome','Cognome','Email','Ruolo','Tribunale','Telefono','Indirizzo','Citta','Registrato','Admin'];
-  var rows=users.map(function(u){return[u.nome||'',u.cognome||'',u.email||'',u.ruolo||'',u.tribunale||'',u.tel||'',u.indirizzo||'',u.citta||'',u.registeredAt?new Date(u.registeredAt).toLocaleDateString('it-IT'):'',u.isAdmin?'SI':'NO'];});
+  var rows=users.map(function(u){return[u.nome||'',u.cognome||'',u.email||'',u.ruolo||'',u.tribunale||'',u.tel||'',u.indirizzo||'',u.citta||'',u.registeredAt?fmtDate(new Date(u.registeredAt)):'',u.isAdmin?'SI':'NO'];});
   var ws=XLSX.utils.aoa_to_sheet([hdr].concat(rows));ws['!cols']=[{wch:16},{wch:16},{wch:30},{wch:22},{wch:28},{wch:18},{wch:28},{wch:18},{wch:14},{wch:8}];
   XLSX.utils.book_append_sheet(wb,ws,'Utenti');
   XLSX.writeFile(wb,'Utenti_InventPro_'+new Date().toISOString().slice(0,10)+'.xlsx');
@@ -4022,7 +4032,7 @@ function renderIstanze() {
 }
 
 function istanzaRow(ist) {
-  var data = new Date(ist.dataCreazione).toLocaleDateString('it-IT');
+  var data = fmtDate(new Date(ist.dataCreazione));
   return '<div class="art-row" style="border-radius:var(--radius-lg);border:1px solid var(--border);margin-bottom:8px;background:var(--surface);cursor:pointer;padding:14px 16px" onclick="openIstanzaDetail(\''+ist.id+'\')">'
     + '<div style="flex:1;min-width:0">'
     + '<div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px">'+escHtml(ist.tipoLabel)+'</div>'
@@ -4546,7 +4556,7 @@ function esportaDocx(istId) {
   var proc = (ls(PK)||[]).find(function(p){ return p.id===ist.procId; }) || {};
 
   // Genera HTML del documento per conversione
-  var oggi = new Date().toLocaleDateString('it-IT');
+  var oggi = fmtDate(new Date());
   var nomeFile = (proc.nome||'procedura').replace(/[^a-zA-Z0-9\s]/g,'').trim().replace(/\s+/g,'-')
     + '_' + ist.tipoLabel.substring(0,20).replace(/[^a-zA-Z0-9\s]/g,'').trim().replace(/\s+/g,'-')
     + '.docx';
@@ -4757,7 +4767,7 @@ function scadenzaLabel(tipo, doc) {
   var col = diff < 0 ? '#dc2626' : diff < 15 ? '#d97706' : '#15803d';
   var label = diff < 0 ? 'Scaduta ' + Math.abs(diff) + ' gg fa' :
               diff === 0 ? 'Scade OGGI' :
-              'Scade tra ' + diff + ' gg (' + d.toLocaleDateString('it-IT') + ')';
+              'Scade tra ' + diff + ' gg (' + fmtDate(d) + ')';
   return '<span style="font-size:11px;font-weight:600;color:'+col+'">⏰ '+label+'</span>';
 }
 
@@ -4796,7 +4806,7 @@ function renderDocumenti() {
     // Lista documenti esistenti
     docs.forEach(function(doc) {
       var tipo = DOCUMENTO_TIPI.find(function(t){ return t.id===doc.tipo; }) || {};
-      var data = new Date(doc.dataCreazione).toLocaleDateString('it-IT');
+      var data = fmtDate(new Date(doc.dataCreazione));
       var progresso = doc.sezioni ? Object.keys(doc.sezioni).length : 0;
       var totSezioni = tipo.sezioni ? tipo.sezioni.length : 0;
       html += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:10px;cursor:pointer;transition:background .1s" onclick="openDocumentoDetail(\''+doc.id+'\')" onmouseover="this.style.background=\'var(--bg)\'" onmouseout="this.style.background=\'var(--surface)\'">';
@@ -5380,7 +5390,7 @@ function buildContestoProcedura(proc, doc) {
   ctx += 'N. procedura: ' + (proc.num || '—') + '\n';
   ctx += 'Tribunale: ' + (proc.tribunale || '—') + '\n';
   ctx += 'Giudice Delegato: ' + (proc.giudice || '—') + '\n';
-  if(proc.data) ctx += 'Data apertura procedura: ' + new Date(proc.data).toLocaleDateString('it-IT') + '\n';
+  if(proc.data) ctx += 'Data apertura procedura: ' + fmtDate(new Date(proc.data)) + '\n';
   if(proc.commissionario) ctx += 'Commissario: ' + proc.commissionario + '\n';
 
   // ── Curatore (da procedura + utente loggato) ──────────────────────────────
@@ -5429,9 +5439,9 @@ function buildContestoProcedura(proc, doc) {
   if(doc && doc.campi) {
     var campi = doc.campi;
     ctx += '\n=== DATI SPECIFICI DOCUMENTO ===\n';
-    if(campi.data_sentenza) ctx += 'Data sentenza apertura: ' + new Date(campi.data_sentenza).toLocaleDateString('it-IT') + '\n';
-    if(campi.data_esecutivita) ctx += 'Data esecutivita stato passivo: ' + new Date(campi.data_esecutivita).toLocaleDateString('it-IT') + '\n';
-    if(campi.data_inventario) ctx += 'Data redazione inventario: ' + new Date(campi.data_inventario).toLocaleDateString('it-IT') + '\n';
+    if(campi.data_sentenza) ctx += 'Data sentenza apertura: ' + fmtDate(new Date(campi.data_sentenza)) + '\n';
+    if(campi.data_esecutivita) ctx += 'Data esecutivita stato passivo: ' + fmtDate(new Date(campi.data_esecutivita)) + '\n';
+    if(campi.data_inventario) ctx += 'Data redazione inventario: ' + fmtDate(new Date(campi.data_inventario)) + '\n';
     if(campi.cause_insolvenza) ctx += 'Cause insolvenza: ' + campi.cause_insolvenza + '\n';
     if(campi.stima_durata) ctx += 'Durata stimata liquidazione: ' + campi.stima_durata + '\n';
     if(campi.costi_previsti) ctx += 'Costi previsti: EUR ' + campi.costi_previsti + '\n';
@@ -5457,7 +5467,7 @@ function renderDatiProceduraCard(proc, doc) {
   html += dRow('Tipo', proc.tipo);
   html += dRow('Tribunale', proc.tribunale);
   html += dRow('G.D.', proc.giudice);
-  if(proc.data) html += dRow('Data apertura', new Date(proc.data).toLocaleDateString('it-IT'));
+  if(proc.data) html += dRow('Data apertura', fmtDate(new Date(proc.data)));
 
   html += '</div>';
 
@@ -5596,7 +5606,7 @@ function rapScadenzaLabel(tipo, rap) {
   var col = diff<0 ? '#dc2626' : diff<15 ? '#d97706' : '#15803d';
   var lbl = diff<0 ? 'Scaduta '+Math.abs(diff)+' gg fa'
           : diff===0 ? 'Scade OGGI'
-          : 'Scade tra '+diff+' gg ('+d.toLocaleDateString('it-IT')+')';
+          : 'Scade tra '+diff+' gg ('+fmtDate(d)+')';
   return '<span style="font-size:11px;font-weight:600;color:'+col+'">⏰ '+lbl+'</span>';
 }
 
@@ -5670,7 +5680,7 @@ function renderRapporti() {
       var sezComp = Object.keys(rap.sezioni||{}).length;
       var totSez = (tipo.sezioni||[]).length;
       var pct = totSez ? Math.round(sezComp/totSez*100) : 0;
-      var data = new Date(rap.dataCreazione).toLocaleDateString('it-IT');
+      var data = fmtDate(new Date(rap.dataCreazione));
       html += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:10px;cursor:pointer;transition:background .1s" onclick="openRapportoDetail(\''+rap.id+'\')" onmouseover="this.style.background=\'var(--bg)\'" onmouseout="this.style.background=\'var(--surface)\'">';
       html += '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">';
       html += '<div style="flex:1">';
@@ -5993,11 +6003,11 @@ function generaRapportoSezione(rapId, sezId) {
   // Dati periodo
   if(rap.campi.periodo_dal||rap.campi.periodo_al) {
     prompt += '\n=== PERIODO DI RIFERIMENTO ===\n';
-    if(rap.campi.periodo_dal) prompt += 'Dal: '+new Date(rap.campi.periodo_dal).toLocaleDateString('it-IT')+'\n';
-    if(rap.campi.periodo_al) prompt += 'Al: '+new Date(rap.campi.periodo_al).toLocaleDateString('it-IT')+'\n';
+    if(rap.campi.periodo_dal) prompt += 'Dal: '+fmtDate(new Date(rap.campi.periodo_dal))+'\n';
+    if(rap.campi.periodo_al) prompt += 'Al: '+fmtDate(new Date(rap.campi.periodo_al))+'\n';
   }
-  if(rap.campi.data_esecutivita) prompt += 'Data esecutivita stato passivo: '+new Date(rap.campi.data_esecutivita).toLocaleDateString('it-IT')+'\n';
-  if(rap.campi.data_ultimo_rapporto) prompt += 'Data ultimo rapporto: '+new Date(rap.campi.data_ultimo_rapporto).toLocaleDateString('it-IT')+'\n';
+  if(rap.campi.data_esecutivita) prompt += 'Data esecutivita stato passivo: '+fmtDate(new Date(rap.campi.data_esecutivita))+'\n';
+  if(rap.campi.data_ultimo_rapporto) prompt += 'Data ultimo rapporto: '+fmtDate(new Date(rap.campi.data_ultimo_rapporto))+'\n';
   if(rap.campi.dati_contabili) prompt += '\n=== DATI CONTABILI DEL PERIODO ===\n'+rap.campi.dati_contabili+'\n';
   if(rap.campi.note) prompt += '\n=== NOTE DEL CURATORE ===\n'+rap.campi.note+'\n';
 
@@ -6253,7 +6263,7 @@ function renderRiparto() {
         var sezComp = Object.keys(rip.sezioni||{}).length;
         var totSez = (tipo.sezioni||[]).length;
         var pct = totSez ? Math.round(sezComp/totSez*100) : 0;
-        var data = new Date(rip.dataCreazione).toLocaleDateString('it-IT');
+        var data = fmtDate(new Date(rip.dataCreazione));
         html += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:8px;cursor:pointer;transition:background .1s" onclick="openRipartoDetail(\''+rip.id+'\')" onmouseover="this.style.background=\'var(--bg)\'" onmouseout="this.style.background=\'var(--surface)\'">';
         html += '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px">';
         html += '<div style="flex:1">';
@@ -6786,7 +6796,7 @@ function expDocRow(id, label, art, stato, dataCreazione, onOpenFn, onExportFn, r
     depositato:{bg:'#f5f3ff',col:'#6d28d9',lbl:'Depositato'},generata:{bg:'#eff6ff',col:'#1d4ed8',lbl:'Generata AI'},
     revisionata:{bg:'#fef9c3',col:'#92400e',lbl:'In revisione'}};
   var s = stMap[stato]||stMap.bozza;
-  var data = dataCreazione ? new Date(dataCreazione).toLocaleDateString('it-IT') : '';
+  var data = dataCreazione ? fmtDate(new Date(dataCreazione)) : '';
   var row = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:13px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px">';
   row += '<div style="flex:1;min-width:0">';
   row += '<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px">'+escHtml(label)+'</div>';
@@ -6991,7 +7001,7 @@ function generaContratto(tipo, procId) {
     testo = generaTesioAvviso(proc, u, nomeCuratore);
   } else {
     var data = (document.getElementById('ctr-data')||{}).value || new Date().toISOString().substr(0,10);
-    var dataFmt = data ? new Date(data).toLocaleDateString('it-IT') : '';
+    var dataFmt = data ? fmtDate(new Date(data)) : '';
     var compenso = (document.getElementById('ctr-compenso')||{}).value || '10';
     var costoLotto = (document.getElementById('ctr-costo-lotto')||{}).value || '25,00';
     var costoRT = (document.getElementById('ctr-rt')||{}).value || '100,00';
@@ -7013,7 +7023,7 @@ function generaContratto(tipo, procId) {
     var sc4 = (document.getElementById('ctr-sc4')||{}).value || '1.5';
     var ibanProc = (document.getElementById('ctr-iban-proc')||{}).value || '';
     var dataGD = (document.getElementById('ctr-data-gd')||{}).value || '';
-    var dataGDFmt = dataGD ? new Date(dataGD).toLocaleDateString('it-IT') : 'xx/xx/xxxx';
+    var dataGDFmt = dataGD ? fmtDate(new Date(dataGD)) : 'xx/xx/xxxx';
 
     testo = 'MANDATO PER LA VENDITA DI BENI ' + nomeBeni + '\n\n';
     testo += 'Con il presente contratto, da valersi ad ogni effetto di legge, tra:\n\n';
@@ -7138,13 +7148,13 @@ function generaContratto(tipo, procId) {
 
 function generaTesioAvviso(proc, u, nomeCuratore) {
   var data = (document.getElementById('av-data')||{}).value || '';
-  var dataFmt = data ? new Date(data).toLocaleDateString('it-IT') : '';
+  var dataFmt = data ? fmtDate(new Date(data)) : '';
   var tipoBeni = (document.getElementById('av-tipo')||{}).value || 'mobili';
   var lotti = (document.getElementById('av-lotti')||{}).value || '';
   var visita = (document.getElementById('av-visita')||{}).value || '';
-  var visitaFmt = visita ? new Date(visita).toLocaleDateString('it-IT') : '____';
+  var visitaFmt = visita ? fmtDate(new Date(visita)) : '____';
   var scadenza = (document.getElementById('av-scadenza')||{}).value || '';
-  var scadFmt = scadenza ? new Date(scadenza).toLocaleDateString('it-IT') : '____';
+  var scadFmt = scadenza ? fmtDate(new Date(scadenza)) : '____';
   var note = (document.getElementById('av-note')||{}).value || '';
 
   var t = 'AVVISO DI VENDITA\n\n';
@@ -7640,7 +7650,7 @@ function _generaDocxMandato(tipo, procId) {
 
   // Raccoglie dati del form
   var data = (document.getElementById('ctr-data')||{}).value || new Date().toISOString().substr(0,10);
-  var dataFmt = data ? new Date(data).toLocaleDateString('it-IT') : new Date().toLocaleDateString('it-IT');
+  var dataFmt = data ? fmtDate(new Date(data)) : fmtDate(new Date());
   var costoLotto = (document.getElementById('ctr-costo-lotto')||{}).value || '25,00';
   var costoRT = tipo==='mobili' ? (document.getElementById('ctr-rt')||{}).value || '100,00' : '';
   var compenso = tipo==='mobili' ? (document.getElementById('ctr-compenso')||{}).value || '10' : '';
@@ -7687,7 +7697,7 @@ function _generaDocxMandato(tipo, procId) {
       procPIVA: proc.piva || '',
       procPEC: proc.pec || '',
       sentenzaNum: proc.sentenzaNum || '',
-      sentenzaData: proc.sentenzaData ? (new Date(proc.sentenzaData).toLocaleDateString('it-IT')) : '',
+      sentenzaData: proc.sentenzaData ? (fmtDate(new Date(proc.sentenzaData))) : '',
       indirizzo: (function() {
         var sedi = proc.sedi || [];
         var sl = sedi.find(function(s){ return s.tipo==='legale'; }) || sedi[0] || {};
@@ -8522,7 +8532,7 @@ function renderAvvisoWiz() {
   html += '</div>';
   html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:8px">';
   html += fldTxt('Comune (per firma avviso)','av-comuneFirma', av.comuneFirma||proc.tribunale||'');
-  html += fldTxt('Data avviso','av-dataAvviso', av.dataAvviso||(new Date().toLocaleDateString('it-IT')));
+  html += fldTxt('Data avviso','av-dataAvviso', av.dataAvviso||(fmtDate(new Date())));
   html += '</div>';
   html += '</div>';
 
@@ -8845,7 +8855,7 @@ function generateAvviso(avId) {
       try {
         var dParts = av.termineOfferteData.split('-');
         var dOff = new Date(parseInt(dParts[0]),parseInt(dParts[1])-1,parseInt(dParts[2]));
-        termineOfferte = dOff.toLocaleDateString('it-IT');
+        termineOfferte = fmtDate(dOff);
       } catch(e) { termineOfferte = av.termineOfferteData; }
     }
 
@@ -8951,7 +8961,7 @@ function generateAvviso(avId) {
       children.push(emptyLine());
       children.push(par([boldRun('ALTRI COSTI a carico dell\'aggiudicatario:')], {spacing:{after:60}}));
       var _dirLett = pctLettere(diritti);
-      children.push(line('a) diritti d\'asta nella misura del '+diritti+'% ('+_dirLett+'%), oltre IVA al 22%, da calcolarsi sul prezzo di aggiudicazione;', 360));
+      children.push(par([normRun('a) diritti d\'asta nella misura del '+diritti+'% ('+_dirLett+'%), oltre IVA al 22%, da calcolarsi sul prezzo di aggiudicazione;')], {spacing:{after:160}}));
       children.push(par([normRun('b) spese e tasse connesse all\'atto notarile di cessione.')], {spacing:{after:160}}));
     });
 
@@ -8995,7 +9005,7 @@ function generateAvviso(avId) {
       children.push(line('Saranno considerate ammissibili esclusivamente le offerte depositate in modalità cartacea o telematica che rispettano i requisiti riportati sul presente avviso di vendita.'));
       children.push(emptyLine());
       children.push(par([boldRun('OFFERTA CARTACEA:')], {spacing:{after:60}}));
-      children.push(line('L\'offerta dovrà essere presentata presso la sede del Soggetto Specializzato alla Vendita "Pro.Ges.S. S.r.l." - Lecco (Lc) Via Giuseppe Parini n. 29, nei giorni feriali, escluso il sabato, dalle ore 9:00 alle ore 13:00 e dalle ore 14:30 alle ore 18:30, entro e non oltre le ore 12:00 del secondo giorno lavorativo precedente la data di vendita ('+termineOfferte+'), in busta chiusa sigillata, controfirmata sul lembo di chiusura.'));
+      children.push(line('L\'offerta dovrà essere presentata presso la sede del Soggetto Specializzato alla Vendita "Pro.Ges.S. S.r.l." - Lecco (Lc) Via Giuseppe Parini n. 29, nei giorni feriali, escluso il sabato, dalle ore 9:00 alle ore 13:00 e dalle ore 14:30 alle ore 18:30, entro e non oltre le ore '+( av.termineOfferteOra||'12:00')+' del secondo giorno lavorativo precedente la data di vendita ('+termineOfferte+'), in busta chiusa sigillata, controfirmata sul lembo di chiusura.'));
       children.push(emptyLine());
       children.push(par([boldRun('OFFERTA TELEMATICA:')], {spacing:{after:60}}));
       children.push(line('L\'offerta dovrà essere formulata esclusivamente tramite il modulo web "Offerta Telematica" fornito dal Ministero della Giustizia, cui è possibile accedere dal portale del gestore della vendita www.progess-italia.it, e dovrà essere trasmessa all\'indirizzo PEC del Ministero della Giustizia offertapvp.dgsia@giustiziacert.it.'));
@@ -9004,7 +9014,7 @@ function generateAvviso(avId) {
       children.push(line('Saranno considerate ammissibili esclusivamente le offerte depositate in modalità telematica che rispettano i requisiti riportati nel presente avviso di vendita.'));
       children.push(emptyLine());
       children.push(par([boldRun('OFFERTA TELEMATICA:')], {spacing:{after:60}}));
-      children.push(line('L\'offerta irrevocabile di acquisto dovrà essere formulata'+(av.termineOfferte?' entro il giorno '+av.termineOfferte:'')+ ' esclusivamente tramite il modulo web "Offerta Telematica" fornito dal Ministero della Giustizia, scaricabile dal portale ministeriale http://venditepubbliche.giustizia.it. L\'accesso potrà avvenire anche attraverso il link www.progess-italia.it.'));
+      children.push(line('L\'offerta irrevocabile di acquisto dovrà essere formulata'+(av.termineOfferteData?' entro il giorno '+fmtDate(new Date(av.termineOfferteData)):'')+ ' esclusivamente tramite il modulo web "Offerta Telematica" fornito dal Ministero della Giustizia, scaricabile dal portale ministeriale http://venditepubbliche.giustizia.it. L\'accesso potrà avvenire anche attraverso il link www.progess-italia.it.'));
       children.push(line('L\'offerta dovrà essere trasmessa all\'indirizzo PEC del Ministero della Giustizia offertapvp.dgsia@giustiziacert.it.'));
     }
     children.push(emptyLine());
@@ -9101,7 +9111,7 @@ function generateAvviso(avId) {
 
     // ═══ FIRMA ═══
     var comuneF = av.comuneFirma||tribunale||'';
-    var dataF = av.dataAvviso||(new Date().toLocaleDateString('it-IT'));
+    var dataF = av.dataAvviso||(fmtDate(new Date()));
     children.push(par([normRun(comuneF+', '+dataF)], {spacing:{after:200}}));
     children.push(emptyLine());
     children.push(par([boldRun('IL CURATORE')], {spacing:{after:60}}));
