@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0046)file:///C:/Users/User/Downloads/InventPro.html -->
+<!-- saved from url=(0048)file:///C:/Users/User/Downloads/InventPro_2.html -->
 <html lang="it"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -6942,7 +6942,14 @@ function openRelazioneStima(procId) {
   html += '</div>';
   html += '</div>';
 
-  openModal('Relazione di Stima — '+proc.nome, html, null, {wide: true});
+  showModal(
+    'Relazione di Stima — '+proc.nome,
+    html,
+    '<div style="display:flex;gap:10px;justify-content:flex-end">'
+    + '<button class="btn" onclick="closeIstModal()">Annulla</button>'
+    + '<button class="btn btn-primary" onclick="generaRelazioneStima(\''+proc.id+'\')">📄 Genera Relazione di Stima (.docx)</button>'
+    + '</div>'
+  );
 }
 
 async function generaRelazioneStima(procId) {
