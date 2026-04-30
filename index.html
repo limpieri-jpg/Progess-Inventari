@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0049)file:///C:/Users/User/Downloads/InventPro_71.html -->
+<!-- saved from url=(0049)file:///C:/Users/User/Downloads/InventPro_72.html -->
 <html lang="it"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -3435,6 +3435,8 @@ function saveUserModal(uid){
     users[idx].resCap=umv('um-res-cap');
     users[idx].stuIndirizzo=umv('um-stu-ind');users[idx].stuCivico=umv('um-stu-civ');
     users[idx].stuCap=umv('um-stu-cap');users[idx].stuCitta=umv('um-stu-citta');
+    users[idx].stuProvincia=(umv('um-stu-prov')||'').toUpperCase();
+    users[idx].pec=umv('um-pec');
     users[idx].indirizzo=users[idx].stuIndirizzo;users[idx].citta=users[idx].stuCitta;
     users[idx].isAdmin=role==='admin';
     var _profTitolo=(document.getElementById('um-titolo')||{}).value||'';
@@ -8806,7 +8808,7 @@ function generateAvviso(avId) {
     var tribunale = proc.tribunale||'_______________';
     var nomeProcedura = proc.nome||'_______________';
     var rgAnno = proc.rgAnno||'';
-    var gd = proc.giudiceDelegato||'_______________';
+    var gd = proc.giudice||'_______________';
     var curNome = (user&&user.nome?((user.titolo?user.titolo+' ':'')+user.nome+' '+user.cognome):proc.curatore)||'_______________';
     var pecProc = proc.pec||'_______________';
     var nEsper = av.nEsperimento||'1';
@@ -8869,7 +8871,10 @@ function generateAvviso(avId) {
     children.push(emptyLine());
 
     // ═══ PREAMBOLO ═══
-    var preambolo = 'Il sottoscritto '+curNome+', nella sua qualità di Curatore della Procedura n. '+rgAnno+', dichiarata dal Tribunale di '+tribunale+' con sentenza del _______________ (PEC della procedura: '+pecProc+')';
+    var sentData = proc.sentenzaData||'';
+    var sentNum  = proc.sentenzaNum||'';
+    var sentTxt  = sentData ? (sentNum ? sentNum+' del '+sentData : 'del '+sentData) : (sentNum||'_______________');
+    var preambolo = 'Il sottoscritto '+curNome+', nella sua qualità di Curatore della Procedura n. '+rgAnno+', dichiarata dal Tribunale di '+tribunale+' con sentenza '+sentTxt+' (PEC della procedura: '+pecCuratore+')';
     if(!isAsteMag) {
       preambolo += '\n\n- Visto il Programma di Liquidazione dell\'attivo della procedura già predisposto ed approvato a norma dell\'art. 213 CCII;\n- Vista l\'autorizzazione emessa in data '+dataAutGD+' dall\'Ill.mo Sig. Giudice Delegato Dott. '+gd+' a norma dell\'articolo 216 CCII;';
     }
@@ -8926,7 +8931,8 @@ function generateAvviso(avId) {
       children.push(boldLine('RILANCI MINIMI in caso di GARA: ', 'euro '+rilanci));
       children.push(emptyLine());
       children.push(par([boldRun('ALTRI COSTI a carico dell\'aggiudicatario:')], {spacing:{after:60}}));
-      children.push(par([normRun('a) diritti d\'asta nella misura del '+diritti+'%, oltre IVA al 22%, da calcolarsi sul prezzo di aggiudicazione;')], {spacing:{after:60}}));
+      var _dirLett = pctLettere(diritti);
+      children.push(line('a) diritti d\'asta nella misura del '+diritti+'% ('+_dirLett+'%), oltre IVA al 22%, da calcolarsi sul prezzo di aggiudicazione;', 360));
       children.push(par([normRun('b) spese e tasse connesse all\'atto notarile di cessione.')], {spacing:{after:160}}));
     });
 
@@ -9031,7 +9037,22 @@ function generateAvviso(avId) {
 
     // Diritti d'asta — usa percentuale del primo lotto o default
     var dirPct = avLotti[0] ? (av['diritti_'+avLotti[0].id]||'2') : '2';
-    children.push(line('Entro il termine di 15 giorni dalla data di aggiudicazione, l\'aggiudicatario dovrà provvedere al versamento integrale dei diritti d\'asta dovuti al Gestore della Vendita Telematica "PRO.GES.S. SRL", nella misura del '+dirPct+'% ('+dirPct+'%), da calcolarsi sul prezzo di aggiudicazione, oltre IVA al 22%, a mezzo bonifico bancario sul conto corrente:'));
+    // Converte percentuale in lettere
+    var _numLett = ['zero','uno','due','tre','quattro','cinque','sei','sette','otto','nove','dieci',
+      'undici','dodici','tredici','quattordici','quindici','sedici','diciassette','diciotto','diciannove','venti'];
+    function pctLettere(n) {
+      var v = parseItNum(String(n));
+      if(Number.isInteger(v) && v>=0 && v<=20) return _numLett[v];
+      // es. 2.5 → 'due virgola cinque'
+      var parts = String(v).replace('.',',').split(',');
+      var intera = parseInt(parts[0])||0;
+      var dec = parts[1]||'';
+      var txt = (intera>=0&&intera<=20)?_numLett[intera]:String(intera);
+      if(dec) txt += ' virgola '+([...dec].map(function(d){return _numLett[parseInt(d)]||d;}).join(' '));
+      return txt;
+    }
+    var dirPctLett = pctLettere(dirPct);
+    children.push(line('Entro il termine di 15 giorni dalla data di aggiudicazione, l\'aggiudicatario dovrà provvedere al versamento integrale dei diritti d\'asta dovuti al Gestore della Vendita Telematica "PRO.GES.S. SRL", nella misura del '+dirPct+'% ('+dirPctLett+'%), da calcolarsi sul prezzo di aggiudicazione, oltre IVA al 22%, a mezzo bonifico bancario sul conto corrente:'));
     children.push(emptyLine());
     children.push(par([boldRun('Beneficiario:\t'), normRun('Pro.Ges.S. S.r.l.')], {spacing:{after:60}}));
     children.push(par([boldRun('Banca beneficiario:\t'), normRun('Deutsche Bank Filiale di Lecco, Agenzia di Castello')], {spacing:{after:60}}));
