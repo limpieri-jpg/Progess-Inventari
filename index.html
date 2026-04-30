@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0048)file:///C:/Users/User/Downloads/InventPro_4.html -->
+<!-- saved from url=(0048)file:///C:/Users/User/Downloads/InventPro_5.html -->
 <html lang="it"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -7329,30 +7329,93 @@ async function generaRelazioneStima(procId) {
       });
     }
 
-    for(var ai=0;ai<arts.length;ai++){
-      var a=arts[ai];
-      var allPhotos=await loadAllPhotos(a.id);
-      var desc=(a.descBreve||a.descrizione||a.nome||'Articolo n.'+(ai+1));
-      var titolo=(ai+1)+'. '+(a.marca?a.marca+' ':'')+desc;
+    // Rileva dimensioni immagine da base64 (per mantenere ratio originale)
+    function getImgDimensions(b64) {
+      return new Promise(function(resolve){
+        try {
+          var img = new Image();
+          img.onload = function(){ resolve({w:img.naturalWidth, h:img.naturalHeight}); };
+          img.onerror = function(){ resolve({w:4,h:3}); };
+          img.src = b64.startsWith('data:') ? b64 : 'data:image/jpeg;base64,'+b64;
+        } catch(e){ resolve({w:4,h:3}); }
+      });
+    }
 
-      // Titolo articolo
-      children.push(new D.Paragraph({children:[tB(titolo,{size:22,color:BLU})],
-        border:{bottom:{style:BS.SINGLE,size:4,color:ROSSO,space:2}},spacing:{before:200,after:80}}));
+    // Calcola width/height per l'immagine mantenendo il ratio originale
+    // max 2 articoli per pagina: ogni foto in una griglia 3 per riga
+    // Larghezza pagina utile: CW DXA = 9638. In EMU: CW * 914400/1440
+    // 3 foto per riga con gap: ogni foto occupa ~(CW/3 - gap) DXA
+    // Max altezza per foto: ~150px docx (circa 1900 DXA)
+    var FOTO_COL = 3; // 3 foto per riga
+    var FOTO_W_DXA = Math.floor((CW - 200) / FOTO_COL); // larghezza singola foto
+    var FOTO_W_PX = Math.round(FOTO_W_DXA * 96 / 1440); // ~255px a 96dpi
 
-      // Solo quantità
-      children.push(pr([t('Quantità: '+(a.qta||1)+' '+(a.unitaMisura||'UN'),10)],{spacing:{after:80}}));
+    function calcFotoDim(origW, origH) {
+      var maxW = FOTO_W_PX;
+      var maxH = 200; // max altezza px
+      var ratio = origW / origH;
+      var w = maxW;
+      var h = Math.round(w / ratio);
+      if(h > maxH) { h = maxH; w = Math.round(h * ratio); }
+      return {width: w, height: h};
+    }
 
-      // Tutte le foto
-      if(allPhotos.length>0){
-        allPhotos.forEach(function(photoB64){
-          if(!photoB64) return;
-          try{
-            var imgData=photoB64.split(',')[1]||photoB64;
-            children.push(new D.Paragraph({children:[new D.ImageRun({data:Uint8Array.from(atob(imgData),function(c){return c.charCodeAt(0);}),transformation:{width:280,height:190},type:'jpg'})],spacing:{after:60}}));
-          }catch(e){}
-        });
+    // Genera riga di max 3 foto affiancate
+    async function makeFotoRiga(photos, startIdx, endIdx) {
+      var imgRuns = [];
+      for(var fi=startIdx; fi<endIdx && fi<photos.length; fi++) {
+        var photoB64 = photos[fi];
+        if(!photoB64) continue;
+        try {
+          var raw = photoB64.startsWith('data:') ? photoB64 : 'data:image/jpeg;base64,'+photoB64;
+          var dims = await getImgDimensions(raw);
+          var fd = calcFotoDim(dims.w, dims.h);
+          var imgData = photoB64.split(',')[1]||photoB64;
+          var imgArr = Uint8Array.from(atob(imgData), function(ch){ return ch.charCodeAt(0); });
+          // Aggiunge l'immagine con spacing orizzontale
+          imgRuns.push(new D.ImageRun({
+            data: imgArr,
+            transformation: { width: fd.width, height: fd.height },
+            type: 'jpg'
+          }));
+          // Spacer tra le foto nella stessa riga
+          if(fi < endIdx-1 && fi < photos.length-1) {
+            imgRuns.push(new D.TextRun({text: '  ', size:22}));
+          }
+        } catch(e){}
       }
-      children.push(pEmpty(120));
+      if(!imgRuns.length) return null;
+      return new D.Paragraph({children: imgRuns, spacing:{after:80}});
+    }
+
+    for(var ai=0; ai<arts.length; ai++){
+      var a = arts[ai];
+      var allPhotos = await loadAllPhotos(a.id);
+      var desc = (a.descBreve||a.descrizione||a.nome||'Articolo n.'+(ai+1));
+      var titolo = (ai+1)+'. '+(a.marca?a.marca+' ':'')+desc;
+
+      // Ogni 2 articoli: page break (tranne il primo)
+      if(ai > 0 && ai % 2 === 0) {
+        children.push(new D.Paragraph({children:[new D.TextRun({text:'', break:1})], pageBreakBefore:true, spacing:{after:0}}));
+      }
+
+      // Titolo articolo con bordo rosso sotto
+      children.push(new D.Paragraph({children:[tB(titolo,{size:22,color:BLU})],
+        border:{bottom:{style:BS.SINGLE,size:4,color:ROSSO,space:2}},
+        spacing:{before: ai%2===0 ? 80 : 200, after:60}}));
+
+      // Quantità
+      children.push(pr([t('Quantit\u00e0: '+(a.qta||1)+' '+(a.unitaMisura||'UN'),10)],{spacing:{after:80}}));
+
+      // Foto in righe da 3
+      if(allPhotos.length > 0) {
+        for(var fi=0; fi<allPhotos.length; fi+=FOTO_COL) {
+          var rigaFoto = await makeFotoRiga(allPhotos, fi, fi+FOTO_COL);
+          if(rigaFoto) children.push(rigaFoto);
+        }
+      }
+
+      children.push(pEmpty(60));
     }
 
     var doc = new D.Document({
