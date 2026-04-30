@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0049)file:///C:/Users/User/Downloads/InventPro_79.html -->
+<!-- saved from url=(0046)file:///C:/Users/User/Downloads/InventPro.html -->
 <html lang="it"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -1520,6 +1520,11 @@ function renderProcDetail(){
     + '<div style="font-size:11px;color:var(--muted)">Incarico vendita beni immobili</div>'
     + '</div>'
 
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;text-align:center;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor=\'var(--brand)\'" onmouseout="this.style.borderColor=\'var(--border)\'" onclick="openRelazioneStima(\''+p.id+'\')">' 
+    + '<div style="font-size:28px;margin-bottom:8px">📊</div>'
+    + '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px">Relazione di stima</div>'
+    + '<div style="font-size:11px;color:var(--muted)">Perizia beni mobili con AI</div>'
+    + '</div>'
 
     + '</div></div>';
 
@@ -6841,6 +6846,444 @@ var SERVIZI_IMMOBILI = [
   { id: 'vendita', label: 'Esperire i tentativi di vendita necessari per la liquidazione totale dei beni immobili mediante procedure competitive (art. 216 CCII)', checked: true },
   { id: 'verbale', label: 'Comunicare gli esiti delle vendite al Curatore con Verbale delle operazioni di vendita e Report della piattaforma Progess Italia', checked: true },
 ];
+
+
+// ══════════════════════════════════════════════════════════════════
+// RELAZIONE DI STIMA
+// ══════════════════════════════════════════════════════════════════
+
+function openRelazioneStima(procId) {
+  var proc = (ls(PK)||[]).find(function(p){ return p.id===procId; }) || currentProc || {};
+  var u = currentUser || {};
+  var arts = (ls(AK)||[]).filter(function(a){ return a.procId===proc.id; });
+  var lotti = getLotti(proc.id);
+
+  var nomeCuratore = proc.curatore || (u.nome&&u.cognome ? (u.titolo?u.titolo+' ':'')+u.nome+' '+u.cognome : '');
+
+  var html = '<div style="padding:4px 0">';
+
+  // ── Box auto-popolato
+  html += '<div style="background:var(--bg);border-radius:var(--radius);padding:10px 14px;margin-bottom:14px;font-size:12px">';
+  html += '<div style="font-weight:700;color:var(--text);margin-bottom:6px">📁 Dati procedura (da InventPro)</div>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 14px">';
+  html += dRow('Procedura', proc.nome);
+  html += dRow('Tipo', proc.tipo);
+  html += dRow('N. R.G.', proc.num+' / '+(proc.anno||''));
+  html += dRow('Tribunale', proc.tribunale);
+  html += dRow('Giudice Delegato', proc.giudice);
+  html += dRow('Curatore', nomeCuratore);
+  html += dRow('Commissionario', proc.commissionario||'Pro.Ges.S. S.r.l.');
+  html += '</div></div>';
+
+  // ── Sezione 0: Sito internet e spunti
+  html += '<div style="border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px">';
+  html += '<div style="font-size:13px;font-weight:700;margin-bottom:10px">🌐 Informazioni azienda per la AI</div>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">';
+  html += '<div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Sito internet azienda (facoltativo)</label>';
+  html += '<input type="url" id="rs-sito" class="form-control" placeholder="https://www.esempio.it"></div>';
+  html += '<div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Data sopralluogo / perizia</label>';
+  html += '<input type="date" id="rs-data" class="form-control" value="'+new Date().toISOString().substr(0,10)+'"></div>';
+  html += '</div>';
+  html += '<label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Di cosa si occupa / si occupava l\'azienda</label>';
+  html += '<textarea id="rs-attivita" class="form-control" rows="3" placeholder="Es: officina metalmeccanica specializzata in lavorazioni per conto terzi, tornitura e fresatura CNC..."></textarea>';
+  html += '</div>';
+
+  // ── Sezione 1: Motivi della crisi
+  html += '<div style="border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px">';
+  html += '<div style="font-size:13px;font-weight:700;margin-bottom:10px">📉 Cause della crisi aziendale</div>';
+  html += '<textarea id="rs-crisi" class="form-control" rows="4" placeholder="Es: difficoltà finanziarie legate a calo ordini, perdita commesse principali, aumento costi energia, indebitamento eccessivo..."></textarea>';
+  html += '</div>';
+
+  // ── Sezione 2: Criteri di stima
+  html += '<div style="border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px">';
+  html += '<div style="font-size:13px;font-weight:700;margin-bottom:10px">⚖️ Criteri di valutazione applicati</div>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">';
+  html += '<div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Decurtazione prudenziale (%)</label>';
+  html += '<input type="number" id="rs-decurtazione" class="form-control" value="15" min="0" max="100" step="1"></div>';
+  html += '<div><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Contesto di stima</label>';
+  html += '<select id="rs-contesto" class="form-control">';
+  html += '<option value="liquidazione">Liquidazione giudiziale (valori liquidatori)</option>';
+  html += '<option value="mercato">Valore di mercato libero</option>';
+  html += '<option value="rottame">Prevalentemente rottame/scarto</option>';
+  html += '</select></div>';
+  html += '</div>';
+  html += '<label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Note aggiuntive sui criteri (facoltativo)</label>';
+  html += '<textarea id="rs-criteri-note" class="form-control" rows="3" placeholder="Es: macchinari privi di certificazione CE valorizzati come rottame, presenza di beni di proprietà di terzi esclusi..."></textarea>';
+  html += '</div>';
+
+  // ── Sezione 3: Analisi macroeconomica
+  html += '<div style="border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px">';
+  html += '<div style="font-size:13px;font-weight:700;margin-bottom:10px">📊 Contesto macroeconomico del settore</div>';
+  html += '<textarea id="rs-macro" class="form-control" rows="4" placeholder="Es: il settore manifatturiero ha subito pressioni da aumento costi energetici e delle materie prime, difficoltà logistiche post-pandemiche, calo investimenti PMI..."></textarea>';
+  html += '<div style="margin-top:8px"><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Codice ATECO del settore (facoltativo)</label>';
+  html += '<input type="text" id="rs-ateco" class="form-control" placeholder="Es: 25.62 - Lavori di meccanica generale" style="max-width:350px"></div>';
+  html += '</div>';
+
+  // ── Sezione 4: Beni esclusi
+  html += '<div style="border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px">';
+  html += '<div style="font-size:13px;font-weight:700;margin-bottom:10px">🚫 Beni esclusi dalla stima</div>';
+  html += '<textarea id="rs-esclusi" class="form-control" rows="3" placeholder="Es: beni in leasing, beni di proprietà di terzi (codice ZIN-VA-005), assets immateriali (avviamento, marchi, licenze)..."></textarea>';
+  html += '</div>';
+
+  // ── Sezione 5: Conclusioni
+  html += '<div style="border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px">';
+  html += '<div style="font-size:13px;font-weight:700;margin-bottom:10px">📝 Note conclusive</div>';
+  html += '<textarea id="rs-conclusioni" class="form-control" rows="3" placeholder="Es: i valori riportati sono da ritenersi stime prudenziali in ottica liquidatoria, soggetti a variazioni in caso di vendita in blocco o frazionata..."></textarea>';
+  html += '</div>';
+
+  // ── Inventario: preview
+  html += '<div style="border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px">';
+  html += '<div style="font-size:13px;font-weight:700;margin-bottom:4px">📦 Inventario analitico</div>';
+  html += '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">'+arts.length+' articoli da InventPro verranno inclusi nel documento con foto.</div>';
+  html += '</div>';
+
+  html += '<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">';
+  html += '<button class="btn" onclick="generaRelazioneStima(\''+proc.id+'\')">📄 Genera Relazione di Stima (.docx)</button>';
+  html += '</div>';
+  html += '</div>';
+
+  openModal('Relazione di Stima — '+proc.nome, html, null, {wide: true});
+}
+
+async function generaRelazioneStima(procId) {
+  var proc = (ls(PK)||[]).find(function(p){ return p.id===procId; }) || currentProc || {};
+  var u = currentUser || {};
+  var arts = (ls(AK)||[]).filter(function(a){ return a.procId===proc.id; });
+
+  var nomeCuratore = proc.curatore || (u.nome&&u.cognome ? (u.titolo?u.titolo+' ':'')+u.nome+' '+u.cognome : '');
+  var dataFmt = fmtDate(new Date((document.getElementById('rs-data')||{}).value||new Date()));
+  var sito = ((document.getElementById('rs-sito')||{}).value||'').trim();
+  var attivita = ((document.getElementById('rs-attivita')||{}).value||'').trim();
+  var crisi = ((document.getElementById('rs-crisi')||{}).value||'').trim();
+  var decurtazione = ((document.getElementById('rs-decurtazione')||{}).value)||'15';
+  var contesto = ((document.getElementById('rs-contesto')||{}).value)||'liquidazione';
+  var criteriNote = ((document.getElementById('rs-criteri-note')||{}).value||'').trim();
+  var macro = ((document.getElementById('rs-macro')||{}).value||'').trim();
+  var ateco = ((document.getElementById('rs-ateco')||{}).value||'').trim();
+  var esclusi = ((document.getElementById('rs-esclusi')||{}).value||'').trim();
+  var conclusioni = ((document.getElementById('rs-conclusioni')||{}).value||'').trim();
+
+  notify('Generazione relazione in corso...','info',3000);
+
+  // ── Testi sezioni via AI
+  var apiKey = localStorage.getItem('ip_apikey')||'';
+  async function aiTesto(prompt) {
+    if(!apiKey) return '';
+    try {
+      var r = await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
+        body:JSON.stringify({model:'claude-opus-4-5',max_tokens:1200,
+          messages:[{role:'user',content:prompt}]})
+      });
+      var d = await r.json();
+      return (d.content&&d.content[0]&&d.content[0].text)||'';
+    } catch(e){ return ''; }
+  }
+
+  var procNome = proc.nome||'';
+  var tribunale = proc.tribunale||'';
+  var numProc = (proc.num||'')+(proc.anno?' / '+proc.anno:'');
+  var contestoTxt = contesto==='liquidazione'?'di liquidazione giudiziale':contesto==='rottame'?'con valorizzazione prevalente a rottame':'di libero mercato';
+
+  // Genera sezioni con AI
+  var tIntro = await aiTesto(
+    'Sei un perito tecnico che redige perizie di stima in italiano formale per procedure concorsuali. '+
+    'Scrivi il paragrafo "Introduzione alla Perizia di Stima" (max 200 parole) per la seguente perizia:\n'+
+    'Procedura: '+procNome+' ('+proc.tipo+' n. '+numProc+', Tribunale di '+tribunale+')\n'+
+    'Curatore: '+nomeCuratore+'\n'+
+    'Commissionario: '+(proc.commissionario||'Pro.Ges.S. S.r.l.')+'\n'+
+    'Attività azienda: '+(attivita||'non specificata')+'\n'+
+    (sito?'Sito internet: '+sito+'\n':'')+
+    'Contesto valutazione: '+contestoTxt+'\n'+
+    'Decurtazione prudenziale applicata: '+decurtazione+'%\n'+
+    'Scrivi SOLO il testo del paragrafo, senza titolo, senza note, senza asterischi.');
+
+  var tAttivita = await aiTesto(
+    'Sei un perito tecnico che redige perizie in italiano formale. '+
+    'Scrivi il paragrafo "Descrizione dell\'attività e dell\'impresa" (max 150 parole) per:\n'+
+    'Azienda: '+procNome+'\n'+
+    'Attività: '+(attivita||'attività commerciale/industriale')+'\n'+
+    (sito?'Sito: '+sito+'\n':'')+
+    'Scrivi SOLO il testo, senza titolo, senza note.');
+
+  var tCrisi = await aiTesto(
+    'Sei un perito tecnico che redige perizie in italiano formale. '+
+    'Scrivi il paragrafo "Cause della crisi aziendale" (max 150 parole) per:\n'+
+    'Azienda: '+procNome+'\n'+
+    'Cause indicate: '+(crisi||'difficoltà economico-finanziarie')+'\n'+
+    'Scrivi SOLO il testo, senza titolo, senza note.');
+
+  var tMacro = await aiTesto(
+    'Sei un perito tecnico che redige perizie in italiano formale. '+
+    'Scrivi il paragrafo "Analisi macroeconomica del settore" (max 150 parole) per:\n'+
+    'Settore: '+(attivita||'industriale')+'\n'+
+    (ateco?'Codice ATECO: '+ateco+'\n':'')+
+    'Contesto fornito: '+(macro||'scenario economico attuale')+'\n'+
+    'Scrivi SOLO il testo, senza titolo, senza note.');
+
+  var tCriteri = await aiTesto(
+    'Sei un perito tecnico che redige perizie in italiano formale. '+
+    'Scrivi il paragrafo "Criteri di stima" (max 200 parole) in contesto '+contestoTxt+'.\n'+
+    'Decurtazione prudenziale: '+decurtazione+'%\n'+
+    (criteriNote?'Note specifiche: '+criteriNote+'\n':'')+
+    (esclusi?'Beni esclusi: '+esclusi+'\n':'')+
+    'Scrivi SOLO il testo, senza titolo, senza note.');
+
+  var tConclusioni = await aiTesto(
+    'Sei un perito tecnico che redige perizie in italiano formale. '+
+    'Scrivi il paragrafo "Conclusioni" (max 150 parole) per la perizia di:\n'+
+    'Azienda: '+procNome+'\n'+
+    'Contesto: '+contestoTxt+'\n'+
+    (conclusioni?'Note: '+conclusioni+'\n':'')+
+    'Scrivi SOLO il testo, senza titolo, senza note.');
+
+  // ── Calcolo totale inventario
+  var totaleStima = 0;
+  arts.forEach(function(a){
+    var qta = parseFloat(a.qta)||1;
+    var val = parseItNum(String(a.valGiud||a.valMercato||0));
+    totaleStima += val * qta;
+  });
+
+  // ── Carica foto da IDB
+  async function loadPhoto(artId) {
+    if(!_idbReady||!_idb) return null;
+    return new Promise(function(resolve){
+      try {
+        var tx = _idb.transaction('photos','readonly');
+        var store = tx.objectStore('photos');
+        var req = store.get(artId+'_0');
+        req.onsuccess = function(){ resolve(req.result||null); };
+        req.onerror = function(){ resolve(null); };
+      } catch(e){ resolve(null); }
+    });
+  }
+
+  // ── Genera docx
+  try {
+    var D = docx;
+    var P = D.Paragraph, T = D.TextRun, Al = D.AlignmentType;
+    var TW = 10800;
+
+    function par(children, opts) {
+      var defaults = {alignment: Al.BOTH};
+      return new P(Object.assign(defaults, {children: Array.isArray(children)?children:[children]}, opts||{}));
+    }
+    function boldRun(txt,sz){ return new T({text:txt||'',bold:true,size:sz?sz*2:22,font:'Calibri'}); }
+    function normRun(txt,sz){ return new T({text:txt||'',size:sz?sz*2:22,font:'Calibri'}); }
+    function line(txt){ return par([normRun(txt)],{spacing:{after:120,line:360,lineRule:'auto'}}); }
+    function emptyLine(){ return par([normRun('')],{spacing:{after:80}}); }
+    function sectionTitle(txt){
+      return par([boldRun(txt,13)],{alignment:Al.LEFT,spacing:{before:240,after:80,line:360,lineRule:'auto'},
+        border:{bottom:{style:'single',size:6,space:4,color:'C0392B'}}});
+    }
+    function centered(txt,sz,bold){
+      var fn = bold ? boldRun(txt,sz) : normRun(txt,sz);
+      return par([fn],{alignment:Al.CENTER,spacing:{after:60}});
+    }
+    function splitParas(txt) {
+      if(!txt) return [emptyLine()];
+      return txt.split('\n').filter(function(s){return s.trim();}).map(function(s){ return line(s); });
+    }
+
+    var children = [];
+
+    // ── COPERTINA
+    children.push(emptyLine());
+    children.push(centered('RELAZIONE DI STIMA BENI MOBILI',16,true));
+    children.push(emptyLine());
+    children.push(centered(proc.tipo||'Liquidazione Giudiziale',13,false));
+    children.push(emptyLine());
+    children.push(centered('"'+procNome+'"',13,true));
+    children.push(emptyLine());
+    // Sede legale
+    var sedi = proc.sedi||[];
+    var sl = sedi.find(function(s){return s.tipo==='legale';})||sedi[0]||{};
+    if(sl.indirizzo||sl.comune) {
+      children.push(centered([sl.indirizzo,sl.civico].filter(Boolean).join(' '),12,false));
+      children.push(centered([sl.cap,sl.comune,sl.provincia?'('+sl.provincia+')':''].filter(Boolean).join(' '),12,false));
+    }
+    children.push(emptyLine());
+    children.push(emptyLine());
+    children.push(centered('Numero: '+numProc,12,false));
+    children.push(centered('Giudice: '+(proc.giudice||''),12,false));
+    children.push(centered('Curatore: '+nomeCuratore,12,false));
+    children.push(centered('Commissionario: '+(proc.commissionario||'Pro.Ges.S. S.r.l.'),12,false));
+
+    // ── PAGINA 2: SEZIONI TESTO
+    children.push(new P({children:[new T({text:'',break:1})],pageBreakBefore:true}));
+
+    // 1. Introduzione
+    children.push(sectionTitle('1. Introduzione alla Perizia di Stima'));
+    splitParas(tIntro||'La presente perizia di stima è stata redatta su incarico del Curatore della '+proc.tipo+' n. '+numProc+', con l\'obiettivo di determinare il valore complessivo dei beni oggetto di inventario.').forEach(function(p){children.push(p);});
+    children.push(emptyLine());
+
+    // 2. Descrizione attività
+    children.push(sectionTitle('2. Descrizione dell\'attività e dell\'impresa'));
+    splitParas(tAttivita||attivita||'L\'azienda operava nel settore '+( attivita||'industriale')+ '.').forEach(function(p){children.push(p);});
+    children.push(emptyLine());
+
+    // 3. Cause della crisi
+    children.push(sectionTitle('3. Cause della crisi aziendale'));
+    splitParas(tCrisi||crisi||'L\'impresa ha manifestato difficoltà economico-finanziarie che hanno portato all\'apertura della procedura concorsuale.').forEach(function(p){children.push(p);});
+    children.push(emptyLine());
+
+    // 4. Beni oggetto di perizia
+    children.push(sectionTitle('4. Beni aziendali oggetto di perizia'));
+    children.push(line('Sono stati oggetto di ricognizione e valutazione '+arts.length+' beni presenti nei locali aziendali, come da inventario analitico allegato.'));
+    if(esclusi) { children.push(emptyLine()); splitParas('Beni esclusi dalla valutazione: '+esclusi).forEach(function(p){children.push(p);}); }
+    children.push(emptyLine());
+
+    // 5. Analisi macroeconomica
+    children.push(sectionTitle('5. Analisi macroeconomica del settore'));
+    splitParas(tMacro||macro||'Il contesto economico del settore di riferimento presenta elementi di criticità che incidono sui valori di realizzo in ambito liquidatorio.').forEach(function(p){children.push(p);});
+    children.push(emptyLine());
+
+    // 6. Criteri di stima
+    children.push(sectionTitle('6. Criteri di stima'));
+    splitParas(tCriteri||'Per i beni oggetto della presente perizia si è proceduto a una valutazione in un\'ottica '+contestoTxt+', applicando una decurtazione prudenziale del '+decurtazione+'%.').forEach(function(p){children.push(p);});
+    children.push(emptyLine());
+
+    // 7. Prospetto di sintesi
+    children.push(sectionTitle('7. Prospetto di sintesi della stima'));
+
+    // Tabella riepilogo per categoria
+    var byCateg = {};
+    arts.forEach(function(a){
+      var cat = a.categoria||a.tipologia||'Beni vari';
+      if(!byCateg[cat]) byCateg[cat] = 0;
+      byCateg[cat] += (parseItNum(String(a.valGiud||0)))*(parseFloat(a.qta)||1);
+    });
+
+    var tblRows = [];
+    // Header
+    tblRows.push(new D.TableRow({children:[
+      new D.TableCell({children:[par([boldRun('Descrizione',11)],{alignment:Al.LEFT})],shading:{fill:'F2F2F2'},width:{size:7500,type:'dxa'}}),
+      new D.TableCell({children:[par([boldRun('Valore stimato',11)],{alignment:Al.RIGHT})],shading:{fill:'F2F2F2'},width:{size:2200,type:'dxa'}}),
+    ]}));
+    Object.keys(byCateg).forEach(function(cat){
+      tblRows.push(new D.TableRow({children:[
+        new D.TableCell({children:[par([normRun(cat,11)],{alignment:Al.LEFT})]}),
+        new D.TableCell({children:[par([normRun(fmtNumPlain(byCateg[cat])+' €',11)],{alignment:Al.RIGHT})]}),
+      ]}));
+    });
+    tblRows.push(new D.TableRow({children:[
+      new D.TableCell({children:[par([boldRun('TOTALE',11)],{alignment:Al.LEFT})],shading:{fill:'F2F2F2'}}),
+      new D.TableCell({children:[par([boldRun('€ '+fmtNumPlain(totaleStima),11)],{alignment:Al.RIGHT})],shading:{fill:'F2F2F2'}}),
+    ]}));
+    children.push(new D.Table({rows:tblRows,width:{size:TW,type:'dxa'},borders:{top:{style:'single',size:4,color:'CCCCCC'},bottom:{style:'single',size:4,color:'CCCCCC'},left:{style:'single',size:4,color:'CCCCCC'},right:{style:'single',size:4,color:'CCCCCC'},insideH:{style:'single',size:2,color:'DDDDDD'},insideV:{style:'single',size:2,color:'DDDDDD'}}}));
+    children.push(emptyLine());
+
+    // 8. Conclusioni
+    children.push(sectionTitle('8. Conclusioni'));
+    splitParas(tConclusioni||'La presente perizia di stima rappresenta un quadro realistico e prudenziale del valore di realizzo dei beni della procedura '+procNome+'.').forEach(function(p){children.push(p);});
+    children.push(emptyLine());
+    children.push(emptyLine());
+
+    // Luogo e data firma
+    var comuneFirma = (u.stuCitta||u.citta||'Lecco');
+    children.push(par([normRun(comuneFirma+', '+dataFmt)],{alignment:Al.LEFT,spacing:{after:400}}));
+    children.push(par([normRun('Procedure Gestite e Servizi S.r.l.')],{alignment:Al.RIGHT,spacing:{after:40}}));
+    children.push(par([normRun('L\'Amministratore Unico – '+(u.nome||'')+(u.cognome?' '+u.cognome:''))],{alignment:Al.RIGHT}));
+
+    // ── INVENTARIO ANALITICO (nuova pagina)
+    children.push(new P({children:[new T({text:'',break:1})],pageBreakBefore:true}));
+    children.push(centered('Inventario analitico',13,true));
+    children.push(emptyLine());
+
+    // Tabella inventario
+    var invRows = [];
+    invRows.push(new D.TableRow({children:[
+      new D.TableCell({children:[par([boldRun('Descrizione',10)],{alignment:Al.LEFT})],shading:{fill:'2C3E50'},width:{size:4800,type:'dxa'}}),
+      new D.TableCell({children:[par([boldRun('U.M.',10)],{alignment:Al.CENTER})],shading:{fill:'2C3E50'},width:{size:800,type:'dxa'}}),
+      new D.TableCell({children:[par([boldRun('Q.tà',10)],{alignment:Al.CENTER})],shading:{fill:'2C3E50'},width:{size:800,type:'dxa'}}),
+      new D.TableCell({children:[par([boldRun('Val. Unit. (€)',10)],{alignment:Al.RIGHT})],shading:{fill:'2C3E50'},width:{size:1900,type:'dxa'}}),
+      new D.TableCell({children:[par([boldRun('Totale (€)',10)],{alignment:Al.RIGHT})],shading:{fill:'2C3E50'},width:{size:1900,type:'dxa'}}),
+    ]}));
+
+    arts.forEach(function(a, i){
+      var qta = parseFloat(a.qta)||1;
+      var valUnit = parseItNum(String(a.valGiud||0));
+      var valTot = valUnit * qta;
+      var bg = i%2===0 ? 'FFFFFF' : 'F8F8F8';
+      invRows.push(new D.TableRow({children:[
+        new D.TableCell({children:[par([normRun((a.marca?a.marca+' ':'')+a.descrizione,10)],{alignment:Al.LEFT})],shading:{fill:bg}}),
+        new D.TableCell({children:[par([normRun(a.unitaMisura||'UN',10)],{alignment:Al.CENTER})],shading:{fill:bg}}),
+        new D.TableCell({children:[par([normRun(String(qta),10)],{alignment:Al.CENTER})],shading:{fill:bg}}),
+        new D.TableCell({children:[par([normRun(fmtNumPlain(valUnit),10)],{alignment:Al.RIGHT})],shading:{fill:bg}}),
+        new D.TableCell({children:[par([normRun(fmtNumPlain(valTot),10)],{alignment:Al.RIGHT})],shading:{fill:bg}}),
+      ]}));
+    });
+
+    // Totale inventario
+    invRows.push(new D.TableRow({children:[
+      new D.TableCell({children:[par([boldRun('TOTALE',11)],{alignment:Al.LEFT})],shading:{fill:'EEEEEE'},columnSpan:4}),
+      new D.TableCell({children:[par([boldRun('€ '+fmtNumPlain(totaleStima),11)],{alignment:Al.RIGHT})],shading:{fill:'EEEEEE'}}),
+    ]}));
+
+    children.push(new D.Table({rows:invRows,width:{size:TW,type:'dxa'},borders:{top:{style:'single',size:4,color:'CCCCCC'},bottom:{style:'single',size:4,color:'CCCCCC'},left:{style:'single',size:4,color:'CCCCCC'},right:{style:'single',size:4,color:'CCCCCC'},insideH:{style:'single',size:2,color:'DDDDDD'},insideV:{style:'single',size:2,color:'DDDDDD'}}}));
+
+    // ── REPORT FOTOGRAFICO (nuova pagina)
+    children.push(new P({children:[new T({text:'',break:1})],pageBreakBefore:true}));
+    children.push(centered('Report fotografico beni mobili',13,true));
+    children.push(centered(proc.tipo+' '+procNome,11,false));
+    children.push(centered('n° '+numProc+' — Tribunale di '+tribunale,11,false));
+    children.push(centered('Giudice: '+(proc.giudice||''),11,false));
+    children.push(centered('Curatore: '+nomeCuratore,11,false));
+    children.push(emptyLine());
+
+    for(var ai=0; ai<arts.length; ai++) {
+      var a = arts[ai];
+      var photoB64 = await loadPhoto(a.id);
+
+      children.push(sectionTitle((ai+1)+'. '+(a.descrizione||a.nome||'Bene '+(ai+1))));
+
+      // Info bene
+      var infoRows = [];
+      if(a.marca) infoRows.push('Marca: '+a.marca);
+      if(a.modello) infoRows.push('Modello: '+a.modello);
+      if(a.categoria) infoRows.push('Categoria: '+a.categoria);
+      if(a.qta) infoRows.push('Quantità: '+a.qta+(a.unitaMisura?' '+a.unitaMisura:''));
+      infoRows.push('Valore unitario: € '+fmtNumPlain(parseItNum(String(a.valGiud||0))));
+      if(a.note) infoRows.push('Note: '+a.note);
+
+      infoRows.forEach(function(row){ children.push(line(row)); });
+
+      // Foto
+      if(photoB64) {
+        try {
+          var imgData = photoB64.split(',')[1]||photoB64;
+          children.push(new P({children:[new D.ImageRun({data:Uint8Array.from(atob(imgData),function(c){return c.charCodeAt(0);}),transformation:{width:300,height:200},type:'jpg'})],spacing:{after:120}}));
+        } catch(e){}
+      }
+      children.push(emptyLine());
+    }
+
+    // ── Genera file
+    var doc = new D.Document({
+      sections:[{
+        properties:{page:{margin:{top:1134,right:1134,bottom:1134,left:1134}}},
+        children:children
+      }]
+    });
+
+    var buf = await D.Packer.toBlob(doc);
+    var url = URL.createObjectURL(buf);
+    var a2 = document.createElement('a');
+    a2.href = url;
+    var safeName = (procNome||'Perizia').replace(/[^a-zA-Z0-9\s\-_]/g,'').trim().replace(/\s+/g,'_');
+    a2.download = 'Relazione_Stima_'+safeName+'.docx';
+    a2.click();
+    setTimeout(function(){URL.revokeObjectURL(url);},5000);
+    notify('Relazione di stima generata!','ok',3000);
+    closeIstModal();
+
+  } catch(e) {
+    console.error(e);
+    notify('Errore: '+e.message,'err',5000);
+  }
+}
 
 function openContratto(tipo, procId) {
   var proc = (ls(PK)||[]).find(function(p){ return p.id===procId; }) || currentProc || {};
