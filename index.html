@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0049)file:///C:/Users/User/Downloads/InventPro_78.html -->
+<!-- saved from url=(0049)file:///C:/Users/User/Downloads/InventPro_79.html -->
 <html lang="it"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -8403,7 +8403,7 @@ function renderAvvisoWiz() {
   html += '<h3 style="margin:0 0 16px;font-size:15px;font-weight:700">2. Commissioni e termini (valori predefiniti per i lotti)</h3>';
   html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px">';
   html += fldNum('Cauzione (%) *','av-cauz-default', av.cauzDefault||'10', {intero:true});
-  html += fldNum('Rilanci minimi (€) *','av-rilanci-default', av.rilanciDefault||'', {intero:true});
+  html += fldNum('Rilanci minimi (€) *','av-rilanci-default', av.rilanciDefault||'');
   var _dtipo = av.dirittiTipo||'fisso';
   var _dfissoSel = (_dtipo!=='fasce') ? ' selected' : '';
   var _dfasceSel = (_dtipo==='fasce') ? ' selected' : '';
@@ -8495,7 +8495,7 @@ function renderAvvisoWiz() {
       html += '</div>';
       html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">';
       html += fldNum('Cauzione (%)','lav-cauz-'+l.id, av['cauz_'+l.id]||av.cauzDefault||'10', {intero:true});
-      html += fldNum('Rilanci minimi (€)','lav-rilanci-'+l.id, av['rilanci_'+l.id]||av.rilanciDefault||'', {intero:true});
+      html += fldNum('Rilanci minimi (€)','lav-rilanci-'+l.id, av['rilanci_'+l.id]||av.rilanciDefault||'');
       html += '<div id="lav-diritti-wrap-'+l.id+'" data-lotid="'+l.id+'"></div>';
       html += '</div>';
       html += '<div style="margin-top:8px;width:100%"><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:2px">Descrizione lotto (precompilata da inventario)</label>';
@@ -8650,9 +8650,9 @@ function fldTxt(label, id, val) {
     +'<input type="text" id="'+id+'" class="form-control" value="'+escHtml(val)+'"></div>';
 }
 function fmtInt(n) {
-  // Formato intero italiano (no decimali)
+  // Formato intero italiano con separatore migliaia (no decimali)
   var v = Math.round(parseFloat(n)||0);
-  return v.toLocaleString('it-IT');
+  return String(v).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 function fldNum(label, id, val, opts) {
   opts = opts||{};
@@ -8668,7 +8668,10 @@ function fmtNumPlain(n) {
   if(n===''||n===null||n===undefined) return '';
   var v = (typeof n === 'number') ? n : parseItNum(String(n));
   if(isNaN(v)) return '';
-  return v.toLocaleString('it-IT', {minimumFractionDigits:2, maximumFractionDigits:2});
+  // Formato esplicito: separatore migliaia + 2 decimali
+  var parts = v.toFixed(2).split('.');
+  var intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return intPart + ',' + parts[1];
 }
 
 function buildDescrizioneLotto(lotto, beniL) {
@@ -8806,7 +8809,8 @@ function generateAvviso(avId) {
 
     // Helper
     function par(children, opts) {
-      return new P(Object.assign({children: Array.isArray(children)?children:[children]}, opts||{}));
+      var defaults = {alignment: Al.BOTH};
+      return new P(Object.assign(defaults, {children: Array.isArray(children)?children:[children]}, opts||{}));
     }
     function boldRun(txt, sz) {
       return new T({text: txt, bold: true, size: sz||22, font:'Times New Roman'});
@@ -8827,7 +8831,7 @@ function generateAvviso(avId) {
       return par([boldRun('* * * * * * * *')], {alignment:Al.CENTER, spacing:{after:160,before:80}});
     }
     function boldLine(label, value, indent) {
-      return par([boldRun(label), normRun(value)], {spacing:{after:80,line:360,lineRule:'auto'}, indent:indent?{left:indent}:undefined});
+      return par([boldRun(label), normRun(value)], {alignment:Al.BOTH, spacing:{after:80,line:360,lineRule:'auto'}, indent:indent?{left:indent}:undefined});
     }
     function sectionTitle(txt) {
       return par([boldRun(txt.toUpperCase(),22)], {alignment:Al.CENTER, spacing:{before:200,after:80,line:360,lineRule:'auto'}});
