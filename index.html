@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0048)file:///C:/Users/User/Downloads/InventPro_6.html -->
+<!-- saved from url=(0048)file:///C:/Users/User/Downloads/InventPro_7.html -->
 <html lang="it"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -1401,7 +1401,7 @@ function renderProcDetail(){
   }
 
   // Dati procedura card
-  var c1=document.createElement('div');c1.className='card';
+  var c1=document.createElement('div');c1.className='card';c1.style.background='#EFF6FF';c1.style.borderColor='#BFDBFE';
   c1.innerHTML='<div class="card-title" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none" onclick="var b=this.nextSibling;var a=this.querySelector(\'span.toggle-arrow\');var open=b.style.display!==\'none\';b.style.display=open?\'none\':\'\';a.style.transform=open?\'rotate(-90deg)\':\'\';void 0">Dati procedura <span class="toggle-arrow" style="font-size:12px;transition:transform .2s;display:inline-block;transform:rotate(-90deg)">&#9660;</span></div>'
     +'<div class="c1-body" style="display:none"><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">'
     +['Tipo|'+p.tipo,'N. Procedura|'+(p.num||'—'),'Tribunale|'+(p.tribunale||'—'),'Giudice Delegato|'+(p.giudice||'—'),'Curatore|'+(p.curatore||'—'),'Commissionario|'+(p.commissionario||'—'),'Email professionista|'+(currentUser.email||'—')].map(function(s){var sp=s.split('|');return'<div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">'+sp[0]+'</div><div>'+sp[1]+'</div></div>';}).join('')
@@ -1411,7 +1411,7 @@ function renderProcDetail(){
   el.appendChild(c1);
 
   // Sedi card
-  var c2=document.createElement('div');c2.className='card';
+  var c2=document.createElement('div');c2.className='card';c2.style.background='#EFF6FF';c2.style.borderColor='#BFDBFE';
   var sediHtml='<div class="card-title" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none" onclick="var b=this.nextSibling;var a=this.querySelector(\'span.toggle-arrow\');var open=b.style.display!==\'none\';b.style.display=open?\'none\':\'\';a.style.transform=open?\'rotate(-90deg)\':\'\';void 0">Sedi ('+sedi.length+') <span class="toggle-arrow" style="font-size:12px;transition:transform .2s;display:inline-block;transform:rotate(-90deg)">&#9660;</span></div><div class="c2-body" style="display:none">';
   sedi.forEach(function(s){
     sediHtml+='<div class="sede-card'+(s.tipo==='legale'?' sede-highlight':'')+'">'
@@ -1426,7 +1426,7 @@ function renderProcDetail(){
   el.appendChild(c2);
 
   // Inventario card
-  var c3=document.createElement('div');c3.className='card';
+  var c3=document.createElement('div');c3.className='card';c3.style.background='#EFF6FF';c3.style.borderColor='#BFDBFE';
   var invHdr=document.createElement('div');invHdr.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:12px';
   invHdr.innerHTML='<div class="card-title" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;margin-bottom:0" onclick="var p=this.closest(\'div.card\');var b=p.querySelector(\'.inv-body\');var a=this.querySelector(\'span.toggle-arrow\');var open=b.style.display!==\'none\';b.style.display=open?\'none\':\'\';a.style.transform=open?\'rotate(-90deg)\':\'\';void 0">Inventario ('+arts.length+') <span class="toggle-arrow" style="font-size:12px;transition:transform .2s;display:inline-block;transform:rotate(-90deg)">&#9660;</span></div>';
   if(isAttiva){var ba=document.createElement('button');ba.className='btn btn-sm btn-primary';ba.textContent='+ Articolo';ba.onclick=function(){go('articolo');};if(currentUser.isAdmin)invHdr.appendChild(ba);}
@@ -1441,6 +1441,8 @@ function renderProcDetail(){
   var cLotti = document.createElement('div');
   cLotti.className = 'card';
   cLotti.style.marginTop = '12px';
+  cLotti.style.background='#ECFDF5';
+  cLotti.style.borderColor='#6EE7B7';
   var lottiProc = getLotti(p.id);
   var totLotti = lottiProc.length;
 
@@ -1495,7 +1497,7 @@ function renderProcDetail(){
   el.appendChild(cLotti);
 
   // ── Esportazioni card (collapsible) ──
-  var c4=document.createElement('div');c4.className='card';
+  var c4=document.createElement('div');c4.className='card';c4.style.background='#FDF4FF';c4.style.borderColor='#E879F9';
   c4.innerHTML='<div class="card-title" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none" onclick="var b=this.nextSibling;var a=this.querySelector(\'span.toggle-arrow\');var open=b.style.display!==\'none\';b.style.display=open?\'none\':\'\';a.style.transform=open?\'rotate(-90deg)\':\'\';void 0">📤 Esportazioni <span class="toggle-arrow" style="font-size:12px;transition:transform .2s;display:inline-block;transform:rotate(-90deg)">&#9660;</span></div>'
     +'<div class="exp-body" style="display:none;padding:12px">';
   var expGrid=document.createElement('div');
@@ -1520,6 +1522,8 @@ function renderProcDetail(){
   var c5 = document.createElement('div');
   c5.className = 'card';
   c5.style.marginTop = '12px';
+  c5.style.background='#FDF4FF';
+  c5.style.borderColor='#E879F9';
   var c5header = '<div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none" onclick="var b=this.nextElementSibling;var a=this.querySelector(\'.ctoggle\');var open=b.style.display!==\'none\';b.style.display=open?\'none\':\'\';a.style.transform=open?\'rotate(-90deg)\':\'\'">'
     + '<div class="card-title" style="margin:0">📝 Contratti <span class="ctoggle" style="font-size:12px;transition:transform .2s;display:inline-block;transform:rotate(-90deg)">&#9660;</span></div>'
     + '</div>'
@@ -7217,14 +7221,12 @@ async function generaRelazioneStima(procId) {
     ];
     if(sl.indirizzo) coverChildren.push(prC([t((sl.indirizzo+(sl.civico?' '+sl.civico:''))||'',{size:24,color:GRIGIO})],{spacing:{after:10}}));
     if(sl.comune) coverChildren.push(prC([t((sl.cap?sl.cap+' ':'')+sl.comune+(sl.provincia?' ('+sl.provincia+')':''),{size:24,color:GRIGIO})],{spacing:{after:10}}));
-    // Spazio grande per spingere i dati in fondo alla pagina
-    coverChildren.push(pEmpty(2400));
-    // Linea separatrice
-    coverChildren.push(new D.Paragraph({children:[],border:{top:{style:BS.SINGLE,size:4,color:ROSSO,space:6}},spacing:{before:0,after:160}}));
-    coverChildren.push(prC([t('Numero: '+numProc,{size:22,color:BLU})],{spacing:{after:14}}));
-    coverChildren.push(prC([t('Giudice: '+(proc.giudice||''),{size:22,color:BLU})],{spacing:{after:14}}));
-    coverChildren.push(prC([t(_titR+': '+nomeCuratore,{size:22,color:BLU})],{spacing:{after:14}}));
-    coverChildren.push(prC([t('Commissionario: '+(proc.commissionario||'Pro.Ges.S. S.r.l.'),{size:22,color:BLU})],{spacing:{after:14}}));
+    // Spazio molto grande per spingere i dati nella parte inferiore della pagina
+    coverChildren.push(pEmpty(4800));
+    // Dati in fondo — nessuna linea, come nel report fotografico
+    if(proc.giudice) coverChildren.push(prC([t('Giudice: '+proc.giudice,{size:22,color:GRIGIO})],{spacing:{after:40}}));
+    if(nomeCuratore) coverChildren.push(prC([t(_titR+': '+nomeCuratore,{size:22,color:GRIGIO})],{spacing:{after:40}}));
+    if(proc.commissionario) coverChildren.push(prC([t('Commissionario: '+proc.commissionario,{size:22,color:BLU})],{spacing:{after:40}}));
 
     // Corpo documento
     var children = [];
