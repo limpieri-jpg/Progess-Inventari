@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0048)file:///C:/Users/User/Downloads/InventPro_8.html -->
+<!-- saved from url=(0048)file:///C:/Users/User/Downloads/InventPro_9.html -->
 <html lang="it"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -7012,7 +7012,7 @@ async function generaRelazioneStima(procId) {
       var r = await fetch('https://api.anthropic.com/v1/messages',{
         method:'POST',
         headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-        body:JSON.stringify({model:'claude-opus-4-5',max_tokens:2000,
+        body:JSON.stringify({model:'claude-sonnet-4-5-20250929',max_tokens:2000,
           messages:[{role:'user',content:prompt}]})
       });
       var d = await r.json();
