@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0048)file:///C:/Users/User/Downloads/InventPro_7.html -->
+<!-- saved from url=(0048)file:///C:/Users/User/Downloads/InventPro_8.html -->
 <html lang="it"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -7221,12 +7221,13 @@ async function generaRelazioneStima(procId) {
     ];
     if(sl.indirizzo) coverChildren.push(prC([t((sl.indirizzo+(sl.civico?' '+sl.civico:''))||'',{size:24,color:GRIGIO})],{spacing:{after:10}}));
     if(sl.comune) coverChildren.push(prC([t((sl.cap?sl.cap+' ':'')+sl.comune+(sl.provincia?' ('+sl.provincia+')':''),{size:24,color:GRIGIO})],{spacing:{after:10}}));
-    // Spazio molto grande per spingere i dati nella parte inferiore della pagina
-    coverChildren.push(pEmpty(4800));
-    // Dati in fondo — nessuna linea, come nel report fotografico
-    if(proc.giudice) coverChildren.push(prC([t('Giudice: '+proc.giudice,{size:22,color:GRIGIO})],{spacing:{after:40}}));
-    if(nomeCuratore) coverChildren.push(prC([t(_titR+': '+nomeCuratore,{size:22,color:GRIGIO})],{spacing:{after:40}}));
-    if(proc.commissionario) coverChildren.push(prC([t('Commissionario: '+proc.commissionario,{size:22,color:BLU})],{spacing:{after:40}}));
+    // Footer copertina: numero, giudice, curatore, commissionario a piè di pagina
+    var coverFooterLines = [];
+    coverFooterLines.push(prC([t('Numero: '+numProc,{size:22,color:GRIGIO})],{spacing:{after:30}}));
+    if(proc.giudice) coverFooterLines.push(prC([t('Giudice: '+proc.giudice,{size:22,color:GRIGIO})],{spacing:{after:30}}));
+    if(nomeCuratore) coverFooterLines.push(prC([t(_titR+': '+nomeCuratore,{size:22,color:GRIGIO})],{spacing:{after:30}}));
+    if(proc.commissionario) coverFooterLines.push(prC([t('Commissionario: '+proc.commissionario,{size:22,color:BLU})],{spacing:{after:30}}));
+    var coverFooter = new D.Footer({children: coverFooterLines});
 
     // Corpo documento
     var children = [];
@@ -7325,7 +7326,8 @@ async function generaRelazioneStima(procId) {
       styles:{default:{document:{run:{font:'Calibri',size:22}}}},
       sections:[
         {
-          properties:{page:{size:{width:PAGE_W,height:PAGE_H},margin:{top:MAR_T*2,right:MAR_R*2,bottom:MAR_B*2,left:MAR_L*2,header:720,footer:113}}},
+          properties:{page:{size:{width:PAGE_W,height:PAGE_H},margin:{top:MAR_T*2,right:MAR_R*2,bottom:MAR_B*2,left:MAR_L*2,header:720,footer:1800}}},
+          footers:{default:coverFooter},
           children:coverChildren
         },
         {
